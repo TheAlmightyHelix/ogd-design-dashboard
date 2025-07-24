@@ -35,3 +35,14 @@ Field Day Lab processes rich gameplay data—population, session, and player fea
 - API schema may evolve; data adapter layer must handle minor breaking changes.  
 - TSV files follow a consistent feature naming convention; major schema shifts require manual adapter updates.  
 - Users have modern browsers supporting ES6 and LocalStorage.
+
+## Running the App
+Make sure you have node v22.17.1 (or newer) and npm v10.9.2 (or newer) install on your machine.
+
+Install relevant npm packages:
+`npm install`
+
+For development:
+`npm run dev`
+
+Visit `localhost:3000` on your web broswer.
