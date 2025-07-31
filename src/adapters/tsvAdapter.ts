@@ -60,13 +60,7 @@ const getSupportedChartTypes = (
   extractedData: d3.DSVParsedArray<object>,
   featureLevel: GameData['featureLevel'],
 ) => {
-  const supportedChartTypes = [
-    'bar',
-    'histogram',
-    'scatter',
-    'descriptiveStatistics',
-    'boxPlot',
-  ] as VizTypeKey[];
+  const supportedChartTypes = ['descriptiveStatistics'] as VizTypeKey[];
   const columns = extractedData.columns as string[];
 
   // Job Graph specific features
@@ -100,5 +94,14 @@ const getSupportedChartTypes = (
     supportedChartTypes.push('jobGraph');
     supportedChartTypes.push('sankey');
   }
+
+  if (featureLevel === 'player') {
+    supportedChartTypes.push('bar');
+    supportedChartTypes.push('histogram');
+    supportedChartTypes.push('scatter');
+    supportedChartTypes.push('boxPlot');
+    supportedChartTypes.push('datasetComparison');
+  }
+
   return supportedChartTypes;
 };

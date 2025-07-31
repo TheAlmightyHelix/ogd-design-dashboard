@@ -7,6 +7,7 @@ export const VizType = {
   descriptiveStatistics: 'Descriptive Statistics',
   boxPlot: 'Box Plot',
   sankey: 'Sankey Diagram',
+  datasetComparison: 'Dataset Comparison',
 } as const;
 
 export type VizTypeKey = keyof typeof VizType;

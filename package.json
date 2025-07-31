@@ -15,13 +15,14 @@
     "d3": "latest",
     "d3-regression": "^1.3.10",
     "d3-sankey": "^0.12.3",
+    "idb": "latest",
     "lucide-react": "^0.523.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
     "react-grid-layout": "^1.5.1",
-    "zustand": "latest",
-    "idb": "latest"
+    "simple-statistics": "^7.8.8",
+    "zustand": "latest"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",

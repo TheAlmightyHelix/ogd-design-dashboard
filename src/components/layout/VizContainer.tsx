@@ -11,6 +11,7 @@ import DescriptiveStatistics from '../viz/charts/DescriptiveStatistics';
 import BoxPlot from '../viz/charts/BoxPlot';
 import { VizType, VizTypeKey } from '../../constants/vizTypes';
 import useLayoutStore from '../../store/useLayoutStore';
+import DatasetComparison from '../viz/charts/DatasetComparison';
 
 interface VizContainerProps {
   style?: React.CSSProperties;
@@ -50,19 +51,21 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
     );
 
     const [containerMode, setContainerMode] = useState<'settings' | 'viz'>(
-      chartConfig?.vizType && chartConfig?.datasetId ? 'viz' : 'settings',
+      chartConfig?.vizType && chartConfig?.datasetIds?.length
+        ? 'viz'
+        : 'settings',
     );
     const [vizType, setVizType] = useState<VizTypeKey>(
       chartConfig?.vizType || 'bar',
     );
-    const [gameDataId, setGameDataId] = useState<string>(
-      chartConfig?.datasetId || '',
+    const [gameDataIds, setGameDataIds] = useState<string[]>(
+      chartConfig?.datasetIds || [],
     );
 
     useEffect(() => {
       if (chartConfig) {
         setVizType(chartConfig.vizType);
-        setGameDataId(chartConfig.datasetId);
+        setGameDataIds(chartConfig.datasetIds);
       }
     }, [chartConfig]);
 
@@ -71,15 +74,15 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
     }, [vizType]);
 
     useEffect(() => {
-      updateChartConfig(chartId, { datasetId: gameDataId });
-    }, [gameDataId]);
+      updateChartConfig(chartId, { datasetIds: gameDataIds });
+    }, [gameDataIds]);
 
     const renderChartContent = () => {
       if (containerMode === 'settings') {
         return (
           <VizSetup
-            gameDataId={gameDataId}
-            setGameDataId={setGameDataId}
+            gameDataIds={gameDataIds}
+            setGameDataIds={setGameDataIds}
             vizType={vizType}
             setVizType={setVizType}
             setContainerMode={setContainerMode}
@@ -90,40 +93,67 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
       return (
         <>
           {vizType === 'bar' && (
-            <BarChart key={chartId} chartId={chartId} gameDataId={gameDataId} />
+            <BarChart
+              key={chartId}
+              chartId={chartId}
+              gameDataId={gameDataIds[0]}
+            />
           )}
           {vizType === 'histogram' && (
             <Histogram
               key={chartId}
               chartId={chartId}
-              gameDataId={gameDataId}
+              gameDataId={gameDataIds[0]}
             />
           )}
           {vizType === 'scatter' && (
             <ScatterPlot
               key={chartId}
               chartId={chartId}
-              gameDataId={gameDataId}
+              gameDataId={gameDataIds[0]}
             />
           )}
           {vizType === 'timeline' && (
-            <Timeline key={chartId} chartId={chartId} gameDataId={gameDataId} />
+            <Timeline
+              key={chartId}
+              chartId={chartId}
+              gameDataId={gameDataIds[0]}
+            />
           )}
           {vizType === 'jobGraph' && (
-            <JobGraph key={chartId} chartId={chartId} gameDataId={gameDataId} />
+            <JobGraph
+              key={chartId}
+              chartId={chartId}
+              gameDataId={gameDataIds[0]}
+            />
           )}
           {vizType === 'sankey' && (
-            <Sankey key={chartId} chartId={chartId} gameDataId={gameDataId} />
+            <Sankey
+              key={chartId}
+              chartId={chartId}
+              gameDataId={gameDataIds[0]}
+            />
           )}
           {vizType === 'descriptiveStatistics' && (
             <DescriptiveStatistics
               key={chartId}
               chartId={chartId}
-              gameDataId={gameDataId}
+              gameDataId={gameDataIds[0]}
             />
           )}
           {vizType === 'boxPlot' && (
-            <BoxPlot key={chartId} chartId={chartId} gameDataId={gameDataId} />
+            <BoxPlot
+              key={chartId}
+              chartId={chartId}
+              gameDataId={gameDataIds[0]}
+            />
+          )}
+          {vizType === 'datasetComparison' && (
+            <DatasetComparison
+              key={chartId}
+              chartId={chartId}
+              gameDataIds={gameDataIds}
+            />
           )}
         </>
       );

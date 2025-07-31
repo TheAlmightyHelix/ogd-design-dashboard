@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface ChartConfig {
   id: string;
-  datasetId: string;
+  datasetIds: string[];
   vizType: VizTypeKey;
   options: Record<string, any>;
 }

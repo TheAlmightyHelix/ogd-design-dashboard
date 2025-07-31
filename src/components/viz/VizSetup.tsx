@@ -5,16 +5,16 @@ import Select from '../layout/Select';
 import { VizType, VizTypeKey } from '../../constants/vizTypes';
 
 interface VizSetupProps {
-  gameDataId: string;
-  setGameDataId: (gameDataId: string) => void;
+  gameDataIds: string[];
+  setGameDataIds: (gameDataIds: string[]) => void;
   vizType: VizTypeKey;
   setVizType: (vizType: VizTypeKey) => void;
   setContainerMode: (containerMode: 'settings' | 'viz') => void;
 }
 
 const VizSetup = ({
-  gameDataId,
-  setGameDataId,
+  gameDataIds,
+  setGameDataIds,
   vizType,
   setVizType,
   setContainerMode,
@@ -25,8 +25,8 @@ const VizSetup = ({
   );
 
   useEffect(() => {
-    if (!gameDataId) return;
-    const dataset = datasets[gameDataId];
+    if (!gameDataIds.length) return;
+    const dataset = datasets[gameDataIds[0]];
     if (!dataset) return;
     const supportedChartTypes = dataset.supportedChartTypes;
     if (supportedChartTypes) {
@@ -35,10 +35,10 @@ const VizSetup = ({
     if (!supportedChartTypes.includes(vizType)) {
       setVizType(supportedChartTypes[0]);
     }
-  }, [gameDataId, datasets]);
+  }, [gameDataIds, datasets]);
 
   const visualize = () => {
-    if (gameDataId) {
+    if (gameDataIds.length) {
       setContainerMode('viz');
     }
   };
@@ -49,8 +49,8 @@ const VizSetup = ({
       <Select
         className="w-full"
         label="Dataset"
-        value={gameDataId}
-        onChange={(value) => setGameDataId(value as string)}
+        value={gameDataIds[0]}
+        onChange={(value) => setGameDataIds([value as string])}
         options={Object.fromEntries(
           Object.entries(datasets).map(([key]) => [key, key]),
         )}
@@ -64,8 +64,21 @@ const VizSetup = ({
           supportedChartTypes.map((type) => [type, VizType[type]]),
         )}
       />
+      {vizType === 'datasetComparison' && (
+        <Select
+          className="w-full"
+          label="Dataset 2  "
+          value={gameDataIds[1]}
+          onChange={(value) =>
+            setGameDataIds([gameDataIds[0], value as string])
+          }
+          options={Object.fromEntries(
+            Object.entries(datasets).map(([key]) => [key, key]),
+          )}
+        />
+      )}
       <button
-        disabled={!gameDataId || !vizType}
+        disabled={!gameDataIds.length || !vizType}
         className="px-2 py-1 bg-gray-700 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
         onClick={visualize}
       >
