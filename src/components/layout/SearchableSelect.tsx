@@ -104,7 +104,7 @@ const SearchableSelect = ({
       </label>
       <div className="relative w-full" ref={dropdownRef}>
         <div
-          className="appearance-none bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2 py-1 pr-10 cursor-pointer min-h-[32px] flex items-center"
+          className="appearance-none bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full px-2 py-1 pr-10 cursor-pointer min-h-[32px] flex items-center"
           onClick={() => setIsOpen(!isOpen)}
         >
           {selectMultiple && Array.isArray(value) && value.length > 0 ? (

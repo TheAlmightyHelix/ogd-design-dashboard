@@ -78,7 +78,11 @@ const VizSetup = ({
         />
       )}
       <button
-        disabled={!gameDataIds.length || !vizType}
+        disabled={
+          !gameDataIds.length ||
+          !vizType ||
+          (vizType === 'datasetComparison' && !gameDataIds[1])
+        }
         className="px-2 py-1 bg-gray-700 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
         onClick={visualize}
       >
