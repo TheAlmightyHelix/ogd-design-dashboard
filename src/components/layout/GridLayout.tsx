@@ -76,7 +76,7 @@ const GridLayout: React.FC = () => {
         initialCharts = {
           [firstId]: {
             id: firstId,
-            datasetId: '',
+            datasetIds: [],
             vizType: 'bar' as const,
             options: {},
           },
@@ -94,7 +94,7 @@ const GridLayout: React.FC = () => {
       ...charts,
       [newChartId]: {
         id: newChartId,
-        datasetId: '',
+        datasetIds: [],
         vizType: 'bar' as const,
         options: {},
       },
