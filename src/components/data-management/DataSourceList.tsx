@@ -1,11 +1,11 @@
 import useDataStore from '../../store/useDataStore';
-import FilePicker from './FilePicker';
 import { ScissorsLineDashed, X } from 'lucide-react';
 import Dialog from '../layout/Dialog';
 import { useState } from 'react';
 import Select from '../layout/Select';
 import Input from '../layout/Input';
 import DatasetSplitter from './DatasetSplitter';
+import DatasetTSVPicker from './DatasetTSVPicker';
 
 const DataSourceList = () => {
   const { datasets, removeDataset, hasHydrated } = useDataStore();
@@ -14,7 +14,7 @@ const DataSourceList = () => {
   return (
     <div className="flex flex-col gap-4 overflow-y-auto">
       <div className="my-2">
-        <FilePicker />
+        <DatasetTSVPicker />
       </div>
       {!hasHydrated && <div>Loading datasets...</div>}
       {hasHydrated && Object.keys(datasets).length === 0 && (

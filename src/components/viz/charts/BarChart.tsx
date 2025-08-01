@@ -15,15 +15,11 @@ export const BarChart: React.FC<BarChartProps> = ({ gameDataId, chartId }) => {
   const { getDatasetByID, hasHydrated } = useDataStore();
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
   const [filter, setFilter] = useChartOption<string[]>(chartId, 'filter', []);
-  const dataset = getDatasetByID(gameDataId);
-  if (!dataset)
-    return hasHydrated ? (
-      <div>Dataset not found</div>
-    ) : (
-      <div>Loading dataset...</div>
-    );
 
-  const { data } = dataset;
+  const dataset = getDatasetByID(gameDataId);
+
+  // Create a safe data reference that won't cause issues if dataset is null
+  const data = dataset?.data || [];
 
   const renderChart = useCallback(
     (
@@ -102,7 +98,7 @@ export const BarChart: React.FC<BarChartProps> = ({ gameDataId, chartId }) => {
           .attr('x', (d) => (xScale(d.value) || 0) + xScale.bandwidth() / 2)
           .attr('y', (d) => yScale(d.count) - 5)
           .attr('text-anchor', 'middle')
-          .attr('font-size', Math.max(10, Math.min(12, height / 30)))
+          .attr('font-size', Math.max(8, Math.min(10, height / 40)))
           .attr('fill', '#374151')
           .text((d) => d.count);
       }
@@ -153,6 +149,24 @@ export const BarChart: React.FC<BarChartProps> = ({ gameDataId, chartId }) => {
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
 
+  const filterOptions = useMemo(() => {
+    if (!feature || !dataset) return {};
+    const categories = Array.from(
+      new Set(data.map((d) => (d as Record<string, any>)[feature].toString())),
+    );
+    return Object.fromEntries(
+      categories.map((category) => [category, category]),
+    );
+  }, [feature, data, dataset]);
+
+  if (!dataset) {
+    return hasHydrated ? (
+      <div>Dataset not found</div>
+    ) : (
+      <div>Loading dataset...</div>
+    );
+  }
+
   const getFeatureOptions = () => {
     return Object.fromEntries(
       Object.entries(dataset.columnTypes)
@@ -160,16 +174,6 @@ export const BarChart: React.FC<BarChartProps> = ({ gameDataId, chartId }) => {
         .map(([key]) => [key, key]),
     );
   };
-
-  const filterOptions = useMemo(() => {
-    if (!feature) return {};
-    const categories = Array.from(
-      new Set(data.map((d) => (d as Record<string, any>)[feature].toString())),
-    );
-    return Object.fromEntries(
-      categories.map((category) => [category, category]),
-    );
-  }, [feature, data]);
 
   const handleFeatureChange = (value: string) => {
     if (value === feature) return;

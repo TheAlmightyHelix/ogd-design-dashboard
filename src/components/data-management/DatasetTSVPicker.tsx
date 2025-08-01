@@ -2,11 +2,10 @@ import { Upload } from 'lucide-react';
 import useDataStore from '../../store/useDataStore';
 import { parseTSV } from '../../adapters/tsvAdapter';
 
-const FilePicker = () => {
+const DatasetTSVPicker = () => {
   const { addDataset } = useDataStore();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-
     const newFiles = Array.from(e.target.files || []);
     if (validateFiles(newFiles)) {
       newFiles.forEach(async (file) => {
@@ -22,7 +21,7 @@ const FilePicker = () => {
         (file) =>
           file.type === 'text/tab-separated-values' ||
           file.type === 'text/tsv' ||
-          file.name.toLowerCase().endsWith('.tsv')
+          file.name.toLowerCase().endsWith('.tsv'),
       )
     ) {
       console.log(files);
@@ -52,4 +51,4 @@ const FilePicker = () => {
   );
 };
 
-export default FilePicker;
+export default DatasetTSVPicker;

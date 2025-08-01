@@ -23,18 +23,22 @@ export const Histogram: React.FC<HistogramProps> = ({
     'binCount',
     10,
   );
+  const [rangeFilter, setRangeFilter] = useChartOption<{
+    min: number;
+    max: number;
+  }>(chartId, 'rangeFilter', { min: -Infinity, max: Infinity });
+
   const dataset = getDatasetByID(gameDataId);
-  if (!dataset)
+
+  if (!dataset) {
     return hasHydrated ? (
       <div>Dataset not found</div>
     ) : (
       <div>Loading dataset...</div>
     );
+  }
+
   const { data } = dataset;
-  const [rangeFilter, setRangeFilter] = useChartOption<{
-    min: number;
-    max: number;
-  }>(chartId, 'rangeFilter', { min: -Infinity, max: Infinity });
 
   const renderChart = useCallback(
     (

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import useDataStore from '../../../store/useDataStore';
 import Select from '../../layout/Select';
 import * as d3 from 'd3';
@@ -13,14 +13,11 @@ interface BoxPlotProps {
 const BoxPlot: React.FC<BoxPlotProps> = ({ gameDataId, chartId }) => {
   const { getDatasetByID, hasHydrated } = useDataStore();
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
+
   const dataset = getDatasetByID(gameDataId);
-  if (!dataset)
-    return hasHydrated ? (
-      <div>Dataset not found</div>
-    ) : (
-      <div>Loading dataset...</div>
-    );
-  const { data } = dataset;
+
+  // Create a safe data reference that won't cause issues if dataset is null
+  const data = dataset?.data || [];
 
   const renderChart = useCallback(
     (
@@ -164,7 +161,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ gameDataId, chartId }) => {
         .attr('fill', '#374151')
         .text(feature);
 
-      // Add statistics text
+      // Add statistics info
       chartGroup
         .append('text')
         .attr('x', width - 10)
@@ -205,6 +202,14 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ gameDataId, chartId }) => {
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
+
+  if (!dataset) {
+    return hasHydrated ? (
+      <div>Dataset not found</div>
+    ) : (
+      <div>Loading dataset...</div>
+    );
+  }
 
   const getFeatureOptions = () => {
     return Object.fromEntries(

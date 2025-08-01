@@ -1,10 +1,14 @@
-import { Plus, Save, X, Pencil } from 'lucide-react';
-import useLayoutStore from '../../store/useLayoutStore';
+import { Plus, Save, X, Pencil, Download, Upload } from 'lucide-react';
+import useLayoutStore, {
+  DashboardLayoutWithMeta,
+} from '../../store/useLayoutStore';
 import { useState } from 'react';
 import Input from './Input';
 
 const LayoutManager = () => {
   const {
+    serializeLayout,
+    loadLayout,
     layouts,
     currentLayout,
     createLayout,
@@ -33,17 +37,62 @@ const LayoutManager = () => {
     setEditingName('');
   };
 
+  const handleExport = (layout: DashboardLayoutWithMeta) => {
+    const serializedLayout = serializeLayout(layout);
+    const blob = new Blob([serializedLayout], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${layout.name}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (file: File) => {
+    const fileReader = new FileReader();
+    fileReader.onload = (e) => {
+      const layoutJson = e.target?.result as string;
+      const layout = loadLayout(layoutJson);
+      setCurrentLayout(layout.id);
+    };
+    fileReader.readAsText(file);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <div className="flex flex-col gap-2 my-2">
+        <div className="flex gap-2 my-2 justify-between">
           <button
             onClick={handleCreate}
-            className="inline-flex items-center justify-center px-4 py-2 bg-blue-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm"
+            className="inline-flex flex-1 items-center justify-center px-4 py-2 bg-blue-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Dashboard
+            New Dashboard
           </button>
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="file-upload"
+                className="inline-flex items-center justify-center px-4 py-2 bg-gray-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-gray-500 transition-colors text-sm"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Import
+              </label>
+              <input
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file && file.type === 'application/json') {
+                    handleImport(file);
+                  }
+                }}
+                id="file-upload"
+                className="hidden"
+              />
+            </div>
+          </div>
         </div>
         {Object.entries(layouts).map(([id, layout]) => (
           <div
@@ -83,6 +132,15 @@ const LayoutManager = () => {
                       {currentLayout === id ? '(current)' : ''}
                     </span>
                   </div>
+                  <button
+                    className="text-gray-400 hover:text-blue-500 mr-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExport(layout);
+                    }}
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
                   <button
                     className="text-gray-400 hover:text-blue-500"
                     onClick={(e) => {

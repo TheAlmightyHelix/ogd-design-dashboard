@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { persist, PersistStorage } from 'zustand/middleware';
-import { openDB } from 'idb';
+import { persist } from 'zustand/middleware';
 import { Layout } from 'react-grid-layout';
 import { VizTypeKey } from '../constants/vizTypes';
 import { v4 as uuidv4 } from 'uuid';
@@ -38,6 +37,8 @@ interface LayoutState {
   getChartOption: (chartId: string, key: string) => any;
   getLayoutIdByName: (name: string) => string | undefined;
   updateLayoutName: (id: string, name: string) => void;
+  serializeLayout: (layout: DashboardLayoutWithMeta) => string;
+  loadLayout: (serializedLayout: string) => DashboardLayoutWithMeta;
 }
 
 const useLayoutStore = create<LayoutState>()(
@@ -172,6 +173,39 @@ const useLayoutStore = create<LayoutState>()(
           };
         });
       },
+      serializeLayout: (layout: DashboardLayoutWithMeta): string => {
+        const layoutJson = {
+          id: layout.id,
+          name: layout.name,
+          layout: layout.layout,
+          charts: layout.charts,
+        };
+        return JSON.stringify(layoutJson);
+      },
+      loadLayout: (serializedLayout: string): DashboardLayoutWithMeta => {
+        const layout = JSON.parse(serializedLayout);
+        // Validate if the parsed layout is of type DashboardLayoutWithMeta
+        if (
+          typeof layout !== 'object' ||
+          layout === null ||
+          typeof layout.id !== 'string' ||
+          typeof layout.name !== 'string' ||
+          typeof layout.layout !== 'object' ||
+          layout.layout === null ||
+          typeof layout.charts !== 'object' ||
+          layout.charts === null
+        ) {
+          throw new Error(
+            'Invalid layout format: not a DashboardLayoutWithMeta',
+          );
+        }
+
+        set((state) => ({
+          layouts: { ...state.layouts, [layout.id]: layout },
+        }));
+
+        return layout;
+      },
     }),
     {
       name: 'ogd-layout-store',
@@ -190,5 +224,5 @@ const useLayoutStore = create<LayoutState>()(
   ),
 );
 
-export type { ChartConfig, DashboardLayoutWithMeta };
+export type { ChartConfig, DashboardLayoutWithMeta, LayoutState };
 export default useLayoutStore;
