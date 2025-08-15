@@ -39,7 +39,7 @@ const Dialog = ({ open, onClose, title, children }: DialogProps) => {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-lg p-6 min-w-[300px] max-w-lg w-full relative"
+        className="bg-white rounded-lg shadow-lg p-6 min-w-[300px] max-w-4xl w-full relative"
         ref={dialogRef}
         tabIndex={0}
         onClick={(e) => e.stopPropagation()}

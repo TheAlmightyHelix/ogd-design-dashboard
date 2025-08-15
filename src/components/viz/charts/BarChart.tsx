@@ -1,11 +1,9 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
-import useDataStore from '../../../store/useDataStore';
+import React, { useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
 import Select from '../../layout/Select';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import SearchableSelect from '../../layout/SearchableSelect';
 import useChartOption from '../../../hooks/useChartOption';
-import DatasetNotFound from '../DatasetNotFound';
 
 interface BarChartProps {
   dataset: GameData;

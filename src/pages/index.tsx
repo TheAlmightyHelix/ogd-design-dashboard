@@ -3,6 +3,7 @@ import GridLayout from '../components/layout/GridLayout';
 import DataSourceList from '../components/data-management/DataSourceList';
 import CollapsibleSidePanel from '../components/layout/CollapsibleSidePanel';
 import LayoutManager from '../components/layout/LayoutManager';
+import FloatingHelpIcon from '../components/layout/FloatingHelpIcon';
 
 const HomePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -48,6 +49,9 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </CollapsibleSidePanel>
+
+      {/* Floating Help Icon */}
+      <FloatingHelpIcon></FloatingHelpIcon>
     </div>
   );
 };

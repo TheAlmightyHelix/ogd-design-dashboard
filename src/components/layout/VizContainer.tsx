@@ -59,18 +59,18 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
         : 'settings',
     );
     const [vizType, setVizType] = useState<VizTypeKey>(
-      chartConfig?.vizType || 'bar',
+      chartConfig?.vizType || 'descriptiveStatistics',
     );
     const [gameDataIds, setGameDataIds] = useState<string[]>(
       chartConfig?.datasetIds || [],
     );
 
-    useEffect(() => {
-      if (chartConfig) {
-        setVizType(chartConfig.vizType);
-        setGameDataIds(chartConfig.datasetIds);
-      }
-    }, [chartConfig]);
+    // useEffect(() => {
+    //   if (chartConfig) {
+    //     setVizType(chartConfig.vizType);
+    //     setGameDataIds(chartConfig.datasetIds);
+    //   }
+    // }, [chartConfig]);
 
     useEffect(() => {
       updateChartConfig(chartId, { vizType });
