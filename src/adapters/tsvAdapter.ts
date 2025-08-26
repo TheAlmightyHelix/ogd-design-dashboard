@@ -78,8 +78,8 @@ const getSupportedChartTypes = (
     'JobsAttempted-std-dev-per-attempt',
   ];
 
-  const jobGraphFeaturesSupported = jobGraphFeatures.every((feature) =>
-    columns.includes(feature),
+  const jobGraphFeaturesSupported = jobGraphFeatures.some((feature) =>
+    columns.some((column) => column.includes(feature)),
   );
 
   const jobGraphSubfeaturesSupported = jobGraphSubfeatures.every((subfeature) =>
@@ -95,7 +95,7 @@ const getSupportedChartTypes = (
     supportedChartTypes.push('sankey');
   }
 
-  if (featureLevel === 'player') {
+  if (featureLevel === 'player' || featureLevel === 'session') {
     supportedChartTypes.push('bar');
     supportedChartTypes.push('histogram');
     supportedChartTypes.push('scatter');

@@ -65,7 +65,8 @@ export const getNodes = (data: any) => {
     if (
       key.substring(0, 3) !== 'job' &&
       key.substring(0, 6) !== 'county' &&
-      key.substring(0, 7) !== 'mission'
+      key.substring(0, 7) !== 'mission' &&
+      key.substring(0, 6) !== 'puzzle'
     )
       continue;
 
