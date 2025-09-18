@@ -167,7 +167,7 @@ const GridLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen mb-10">
       <div className="flex items-center gap-8 mb-2">
         <div className="text-lg font-bold">
           {currentLayout && layouts[currentLayout]?.name}
