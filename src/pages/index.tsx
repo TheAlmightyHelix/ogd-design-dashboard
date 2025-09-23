@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import GridLayout from '../components/layout/GridLayout';
 import DataSourceList from '../components/data-management/DataSourceList';
-import CollapsibleSidePanel from '../components/layout/CollapsibleSidePanel';
-import LayoutManager from '../components/layout/LayoutManager';
+import CollapsibleSidePanel from '../components/sidebar/CollapsibleSidePanel';
+import LayoutManager from '../components/sidebar/LayoutManager';
 import FloatingHelpIcon from '../components/layout/FloatingHelpIcon';
 
 const HomePage: React.FC = () => {

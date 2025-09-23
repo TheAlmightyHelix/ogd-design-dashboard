@@ -121,6 +121,20 @@ const GridLayout: React.FC = () => {
     updateSpawnPoint(newLayout);
   };
 
+  const duplicateChart = (chartId: string) => {
+    const newCharts = { ...charts };
+    const newChartId = uuidv4();
+    newCharts[newChartId] = charts[chartId];
+    const chartToDuplicate = layout.find((item) => item.i === chartId);
+    if (!chartToDuplicate) return;
+    const newLayout = [
+      ...layout,
+      { ...chartToDuplicate, i: newChartId, x: spawnPoint.x, y: spawnPoint.y },
+    ];
+    saveCurrentLayout(newLayout, newCharts);
+    updateSpawnPoint(newLayout);
+  };
+
   /**
    * updateSpawnPoint is used to update the spawn point for the next chart.
    * It is used to ensure that the next chart is spawned in the correct position.
@@ -205,6 +219,7 @@ const GridLayout: React.FC = () => {
                   chartId={item.i}
                   className="bg-white border border-gray-200 rounded-md"
                   onRemove={removeChart}
+                  onDuplicate={duplicateChart}
                 />
               );
             })}

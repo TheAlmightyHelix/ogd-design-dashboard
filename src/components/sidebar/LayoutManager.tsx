@@ -3,7 +3,7 @@ import useLayoutStore, {
   DashboardLayoutWithMeta,
 } from '../../store/useLayoutStore';
 import { useState } from 'react';
-import Input from './Input';
+import Input from '../layout/Input';
 
 const LayoutManager = () => {
   const {
