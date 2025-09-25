@@ -29,10 +29,10 @@ const CollapsibleSidePanel: React.FC<CollapsibleSidePanelProps> = ({
       {/* Panel Content */}
       <div
         className={`h-full transition-all duration-300 ease-in-out ${
-          isOpen ? 'w-80 opacity-100' : 'w-0 opacity-0'
-        } overflow-clip`}
+          isOpen ? 'w-4xl opacity-100' : 'w-0 opacity-0'
+        } overflow-y-auto`}
       >
-        <div className="h-full w-80 flex flex-col">
+        <div className="h-full w-4xl flex flex-col">
           <div className="flex-1 overflow-y-auto px-4 py-2">{children}</div>
         </div>
       </div>

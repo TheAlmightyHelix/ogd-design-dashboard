@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import GridLayout from '../components/layout/GridLayout';
-import DataSourceList from '../components/data-management/DataSourceList';
+import DataSourceList from '../components/sidebar/data-management/DataSourceList';
 import CollapsibleSidePanel from '../components/sidebar/CollapsibleSidePanel';
 import LayoutManager from '../components/sidebar/LayoutManager';
 import FloatingHelpIcon from '../components/layout/FloatingHelpIcon';

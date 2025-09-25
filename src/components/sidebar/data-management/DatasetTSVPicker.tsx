@@ -1,6 +1,6 @@
 import { Upload } from 'lucide-react';
-import useDataStore from '../../store/useDataStore';
-import { parseTSV } from '../../adapters/tsvAdapter';
+import useDataStore from '../../../store/useDataStore';
+import { parseTSV } from '../../../adapters/tsvAdapter';
 
 const DatasetTSVPicker = () => {
   const { addDataset } = useDataStore();

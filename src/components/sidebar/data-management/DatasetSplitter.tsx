@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import useDataStore from '../../store/useDataStore';
-import Dialog from '../layout/Dialog';
-import Input from '../layout/Input';
-import Select from '../layout/Select';
-import SearchableSelect from '../layout/SearchableSelect';
+import useDataStore from '../../../store/useDataStore';
+import Dialog from '../../layout/Dialog';
+import Input from '../../layout/Input';
+import Select from '../../layout/Select';
+import SearchableSelect from '../../layout/SearchableSelect';
 import * as d3 from 'd3';
 
 const DatasetSplitter = ({
