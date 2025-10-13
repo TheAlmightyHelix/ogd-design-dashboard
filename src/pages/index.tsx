@@ -12,9 +12,6 @@ const HomePage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 p-4">
       {/* Main Content */}
       <div className="overflow-hidden h-full">
-        {/* <h1 className="text-2xl font-light text-gray-900 mb-1">
-          Open Game Data
-        </h1> */}
         <GridLayout />
       </div>
 

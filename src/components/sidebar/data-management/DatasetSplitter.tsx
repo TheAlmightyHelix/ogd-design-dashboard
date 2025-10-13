@@ -25,7 +25,7 @@ const DatasetSplitter = ({
     if (!featureToSplitBy) return [];
 
     const columnType = dataset.columnTypes[featureToSplitBy];
-    if (columnType !== 'number') return [];
+    if (columnType !== 'Numeric') return [];
 
     // Extract numeric values for the selected feature
     const values: number[] = dataset.data
@@ -41,7 +41,7 @@ const DatasetSplitter = ({
     if (!featureToSplitBy) return {};
 
     const columnType = dataset.columnTypes[featureToSplitBy];
-    if (columnType !== 'string') return {};
+    if (columnType !== 'Categorical') return {};
 
     // Extract unique categories for the selected feature
     const uniqueCategories = Array.from(
@@ -64,17 +64,17 @@ const DatasetSplitter = ({
   const getFeatureOptions = () => {
     return Object.fromEntries(
       Object.entries(dataset.columnTypes)
-        .filter(([_, value]) => value === 'number' || value === 'string')
+        .filter(([_, value]) => value === 'Numeric' || value === 'Categorical')
         .map(([key]) => [key, key]),
     );
   };
 
   const isNumericalFeature = () => {
-    return dataset.columnTypes[featureToSplitBy] === 'number';
+    return dataset.columnTypes[featureToSplitBy] === 'Numeric';
   };
 
   const isCategoricalFeature = () => {
-    return dataset.columnTypes[featureToSplitBy] === 'string';
+    return dataset.columnTypes[featureToSplitBy] === 'Categorical';
   };
 
   const splitDataset = () => {

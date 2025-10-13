@@ -202,7 +202,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ dataset, chartId }) => {
   const getFeatureOptions = () => {
     return Object.fromEntries(
       Object.entries(dataset.columnTypes)
-        .filter(([_, value]) => value === 'number')
+        .filter(([_, value]) => value === 'Numeric')
         .map(([key]) => [key, key]),
     );
   };

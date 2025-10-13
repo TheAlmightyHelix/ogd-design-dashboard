@@ -55,7 +55,7 @@ const DatasetComparison: React.FC<DatasetComparisonProps> = ({
   const getFeatureOptions = () => {
     return Object.fromEntries(
       Object.entries(dataset1.columnTypes)
-        .filter(([_, value]) => value === 'number')
+        .filter(([_, value]) => value === 'Numeric')
         .map(([key]) => [key, key]),
     );
   };

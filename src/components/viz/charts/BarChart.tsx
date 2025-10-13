@@ -14,6 +14,8 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
   const [filter, setFilter] = useChartOption<string[]>(chartId, 'filter', []);
 
+  const isOrdinal = dataset?.columnTypes[feature] === 'Ordinal';
+
   // Create a safe data reference that won't cause issues if dataset is null
   const data = dataset?.data || [];
 
@@ -55,8 +57,25 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
         }))
         .filter((d) => filter.length === 0 || filter.includes(d.value));
 
-      // Sort by count descending
-      // chartData.sort((a, b) => b.count - a.count);
+      // Sort data based on feature type
+      if (isOrdinal) {
+        // For ordinal data, sort by the actual values (assuming they can be compared)
+        chartData.sort((a, b) => {
+          const aNum = parseFloat(a.value);
+          const bNum = parseFloat(b.value);
+
+          // If both values are numbers, sort numerically
+          if (!isNaN(aNum) && !isNaN(bNum)) {
+            return aNum - bNum;
+          }
+
+          // Otherwise, sort alphabetically
+          return a.value.localeCompare(b.value);
+        });
+      } else {
+        // For categorical data, sort by count descending
+        chartData.sort((a, b) => b.count - a.count);
+      }
 
       // Chart dimensions with responsive margins
       const margin = {
@@ -175,7 +194,7 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
   const getFeatureOptions = () => {
     return Object.fromEntries(
       Object.entries(dataset.columnTypes)
-        .filter(([_, value]) => value === 'string')
+        .filter(([_, value]) => value === 'Categorical' || value === 'Ordinal')
         .map(([key]) => [key, key]),
     );
   };
@@ -189,7 +208,7 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
   return (
     <div className="flex flex-col gap-2 p-2 h-full">
       <SearchableSelect
-        className="w-full"
+        className="w-full max-w-sm"
         label="Feature"
         placeholder="Select a feature..."
         value={feature}
@@ -198,7 +217,7 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
       />
       {feature && (
         <SearchableSelect
-          className="w-full"
+          className="w-full max-w-sm"
           label="Categories to include"
           placeholder="All"
           value={filter}

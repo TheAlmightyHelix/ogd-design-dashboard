@@ -3,7 +3,7 @@ import Tooltip from './Tooltip';
 
 interface SelectProps {
   className?: string;
-  label: string;
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   options: Record<string, string>;
@@ -21,9 +21,11 @@ const Select = ({
   return (
     <div className={'flex flex-col justify-start items-start ' + className}>
       <div className="flex items-center gap-1">
-        <label className="text-sm text-gray-700" htmlFor={label}>
-          {label}
-        </label>
+        {label && (
+          <label className="text-sm text-gray-700" htmlFor={label}>
+            {label}
+          </label>
+        )}
         {helpText && (
           <Tooltip text={helpText}>
             <InfoIcon className="w-4 h-4 text-gray-500 cursor-help hover:text-gray-700 transition-colors duration-200 group" />

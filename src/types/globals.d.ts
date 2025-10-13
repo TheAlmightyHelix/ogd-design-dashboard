@@ -10,8 +10,9 @@ declare global {
     OGDVersion: string;
     source: 'file' | 'api';
     data: d3.DSVRowArray<Object>;
-    columnTypes: Record<string, string>;
+    columnTypes: Record<string, ColumnType>;
     supportedChartTypes: VizTypeKey[];
     additionalDetails?: Record<string, any>;
   }
+  type ColumnType = 'Categorical' | 'Numeric' | 'Ordinal' | 'Time-series';
 }

@@ -6,7 +6,7 @@ export async function parseTSV(file: File) {
   const [game, startDate, _, endDate, OGDVersion, feature] =
     file.name.split('_');
   const featureLevel = getFeatureLevel(feature);
-  const id = `${game}_${startDate}_${endDate}_${OGDVersion}_${featureLevel}`;
+  const id = `${game}_${startDate}_to_${endDate}_${OGDVersion}_${featureLevel}`;
 
   const url = URL.createObjectURL(file);
   const extractedData = await d3.tsv(url, d3.autoType);
@@ -27,7 +27,8 @@ export async function parseTSV(file: File) {
     OGDVersion,
     source: 'file',
     data: extractedData,
-    columnTypes: columnTypes,
+    // Fix type for columnTypes to match expected type in GameData
+    columnTypes: columnTypes as Record<string, ColumnType>,
     supportedChartTypes: supportedChartTypes,
   };
 
@@ -46,11 +47,11 @@ const getFeatureLevel = (feature: string) => {
 };
 
 const getColumnTypes = (extractedData: d3.DSVParsedArray<object>) => {
-  const columnTypes: Record<string, string> = {};
+  const columnTypes: Record<string, ColumnType> = {};
   if (Object.hasOwn(extractedData, '0')) {
     const firstRow = extractedData[0];
     for (const [key, value] of Object.entries(firstRow)) {
-      columnTypes[key] = typeof value;
+      columnTypes[key] = typeof value === 'number' ? 'Numeric' : 'Categorical';
     }
   }
   return columnTypes;

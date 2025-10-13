@@ -17,6 +17,11 @@ interface DataStore {
     featureLevel?: string,
   ) => GameData[];
   setHasHydrated: (value: boolean) => void;
+  updateDatasetColumnType: (
+    id: string,
+    feature: string,
+    datatype: string,
+  ) => void;
 }
 
 // IndexedDB storage for larger datasets - only initialize in browser
@@ -107,6 +112,31 @@ const useDataStore = create<DataStore>()(
           return true;
         }),
       setHasHydrated: (value: boolean) => set({ hasHydrated: value }),
+      updateDatasetColumnType: (
+        id: string,
+        feature: string,
+        datatype: string,
+      ) => {
+        if (
+          datatype !== 'Categorical' &&
+          datatype !== 'Numeric' &&
+          datatype !== 'Ordinal' &&
+          datatype !== 'Time-series'
+        )
+          return;
+        set((state) => ({
+          datasets: {
+            ...state.datasets,
+            [id]: {
+              ...state.datasets[id],
+              columnTypes: {
+                ...state.datasets[id].columnTypes,
+                [feature]: datatype,
+              },
+            },
+          },
+        }));
+      },
     }),
     {
       name: 'ogd-data-store',
