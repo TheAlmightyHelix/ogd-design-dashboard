@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import * as d3 from 'd3';
-import Select from '../../layout/Select';
+import Select from '../../layout/select/Select';
 import { getNodes, getEdges, EdgeMode } from './progressionGraphsUtil';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';

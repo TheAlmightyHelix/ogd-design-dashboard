@@ -1,5 +1,5 @@
 import { ChevronDown, InfoIcon } from 'lucide-react';
-import Tooltip from './Tooltip';
+import Tooltip from '../Tooltip';
 
 interface SelectProps {
   className?: string;

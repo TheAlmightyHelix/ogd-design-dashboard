@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import useDataStore from '../../../store/useDataStore';
 import Dialog from '../../layout/Dialog';
 import Input from '../../layout/Input';
-import Select from '../../layout/Select';
-import SearchableSelect from '../../layout/SearchableSelect';
+import Select from '../../layout/select/Select';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 
 const DatasetSplitter = ({
@@ -64,7 +64,12 @@ const DatasetSplitter = ({
   const getFeatureOptions = () => {
     return Object.fromEntries(
       Object.entries(dataset.columnTypes)
-        .filter(([_, value]) => value === 'Numeric' || value === 'Categorical' || value === 'Ordinal')
+        .filter(
+          ([_, value]) =>
+            value === 'Numeric' ||
+            value === 'Categorical' ||
+            value === 'Ordinal',
+        )
         .map(([key]) => [key, key]),
     );
   };

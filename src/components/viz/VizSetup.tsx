@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
 import useDataStore from '../../store/useDataStore';
-import Select from '../layout/Select';
+import Select from '../layout/select/Select';
 import { VizType, VizTypeKey } from '../../constants/vizTypes';
 
 interface VizSetupProps {

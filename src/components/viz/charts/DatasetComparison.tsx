@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import SearchableSelect from '../../layout/SearchableSelect';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import useChartOption from '../../../hooks/useChartOption';
 import { tTestTwoSample } from 'simple-statistics';

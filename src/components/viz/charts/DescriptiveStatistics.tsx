@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import Select from '../../layout/Select';
-import SearchableSelect from '../../layout/SearchableSelect';
+import Select from '../../layout/select/Select';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';

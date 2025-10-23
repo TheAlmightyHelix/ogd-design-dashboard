@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import SearchableSelect from '../../layout/SearchableSelect';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import Input from '../../layout/Input';
 import useDataStore from '../../../store/useDataStore';
 import { X, Plus } from 'lucide-react';

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import SearchableSelect from '../../layout/SearchableSelect';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import useChartOption from '../../../hooks/useChartOption';

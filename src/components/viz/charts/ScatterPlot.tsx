@@ -6,8 +6,8 @@ import {
   regressionExp,
   regressionLog,
 } from 'd3-regression';
-import Select from '../../layout/Select';
-import SearchableSelect from '../../layout/SearchableSelect';
+import Select from '../../layout/select/Select';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';

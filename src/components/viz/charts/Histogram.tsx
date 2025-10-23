@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import * as d3 from 'd3';
-import Select from '../../layout/Select';
-import SearchableSelect from '../../layout/SearchableSelect';
+import Select from '../../layout/select/Select';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import { Minus, Plus } from 'lucide-react';
 import Input from '../../layout/Input';

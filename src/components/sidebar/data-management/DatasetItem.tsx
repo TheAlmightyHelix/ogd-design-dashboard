@@ -1,9 +1,7 @@
 import { Filter, ChevronRight, ScissorsLineDashed, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import Select from '../../layout/Select';
+import Select from '../../layout/select/Select';
 import useDataStore from '../../../store/useDataStore';
-import SearchableSelect from '../../layout/SearchableSelect';
-import Input from '../../layout/Input';
 import DatasetFilter from './DatasetFilter';
 
 interface DatasetItemProps {
