@@ -3,6 +3,7 @@ import Select from '../../layout/Select';
 import SearchableSelect from '../../layout/SearchableSelect';
 import * as d3 from 'd3';
 import useChartOption from '../../../hooks/useChartOption';
+import useDataStore from '../../../store/useDataStore';
 
 interface DescriptiveStatisticsProps {
   dataset: GameData;
@@ -27,7 +28,11 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
   const [measureSelected, setMeasureSelected] = useChartOption<
     keyof typeof measures
   >(chartId, 'measureSelected', 'mean');
-  const { data } = dataset;
+  const { getFilteredDataset } = useDataStore();
+
+  // Get filtered dataset from centralized store
+  const filteredDataset = getFilteredDataset(dataset.id);
+  const data = filteredDataset?.data || [];
 
   const stats = useMemo(() => {
     if (!feature || !data.length) return {};

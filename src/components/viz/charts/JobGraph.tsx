@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import Select from '../../layout/Select';
 import { getNodes, getEdges, EdgeMode } from './progressionGraphsUtil';
 import useChartOption from '../../../hooks/useChartOption';
+import useDataStore from '../../../store/useDataStore';
 
 interface JobGraphProps {
   dataset: GameData;
@@ -16,7 +17,11 @@ export const JobGraph: React.FC<JobGraphProps> = ({ dataset, chartId }) => {
     'edgeMode',
     'TopJobCompletionDestinations',
   );
-  const { data } = dataset;
+  const { getFilteredDataset } = useDataStore();
+
+  // Get filtered dataset from centralized store
+  const filteredDataset = getFilteredDataset(dataset.id);
+  const data = filteredDataset?.data || [];
 
   // Get available edge modes based on what columns exist in the dataset
   const availableEdgeModes = useMemo(() => {

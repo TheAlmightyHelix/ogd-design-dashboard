@@ -14,6 +14,14 @@ declare global {
     supportedChartTypes: VizTypeKey[];
     filters?: Record<string, FeatureFilter>;
     additionalDetails?: Record<string, any>;
+    // Filtered dataset properties (added by getFilteredDataset)
+    originalData?: d3.DSVRowArray<Object>;
+    isFiltered?: boolean;
+    filterInfo?: {
+      totalRows: number;
+      filteredRows: number;
+      filterCount: number;
+    };
   }
   type ColumnType = 'Categorical' | 'Numeric' | 'Ordinal' | 'Time-series';
   interface FeatureFilter {

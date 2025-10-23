@@ -3,6 +3,7 @@ import SearchableSelect from '../../layout/SearchableSelect';
 import * as d3 from 'd3';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import useChartOption from '../../../hooks/useChartOption';
+import useDataStore from '../../../store/useDataStore';
 
 interface BoxPlotProps {
   dataset: GameData;
@@ -11,9 +12,11 @@ interface BoxPlotProps {
 
 const BoxPlot: React.FC<BoxPlotProps> = ({ dataset, chartId }) => {
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
+  const { getFilteredDataset } = useDataStore();
 
-  // Create a safe data reference that won't cause issues if dataset is null
-  const data = dataset?.data || [];
+  // Get filtered dataset from centralized store
+  const filteredDataset = getFilteredDataset(dataset.id);
+  const data = filteredDataset?.data || [];
 
   const renderChart = useCallback(
     (

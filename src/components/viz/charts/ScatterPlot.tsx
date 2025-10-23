@@ -11,7 +11,7 @@ import SearchableSelect from '../../layout/SearchableSelect';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';
-import { applyFilters } from '../../../utils/filterUtils';
+import useDataStore from '../../../store/useDataStore';
 
 interface ScatterPlotProps {
   dataset: GameData;
@@ -56,14 +56,11 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
   const [regressionLine, setRegressionLine] = useChartOption<
     keyof typeof RegressionLineType
   >(chartId, 'regressionLine', RegressionLineType.none);
-  // Apply dataset filters to the data
-  const rawData = dataset?.data || [];
-  const data = useMemo(() => {
-    if (!dataset?.filters || Object.keys(dataset.filters).length === 0) {
-      return rawData;
-    }
-    return applyFilters(rawData, dataset.filters);
-  }, [rawData, dataset?.filters]);
+  const { getFilteredDataset } = useDataStore();
+
+  // Get filtered dataset from centralized store
+  const filteredDataset = getFilteredDataset(dataset.id);
+  const data = filteredDataset?.data || [];
 
   const getFeatureOptions = () => {
     return Object.fromEntries(
@@ -282,41 +279,8 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
 
-  // Calculate filtered data info
-  const filteredDataInfo = useMemo(() => {
-    const totalRows = rawData.length;
-    const filteredRows = data.length;
-    const hasFilters =
-      dataset?.filters && Object.keys(dataset.filters).length > 0;
-
-    return {
-      totalRows,
-      filteredRows,
-      hasFilters,
-      filterCount: hasFilters ? Object.keys(dataset.filters || {}).length : 0,
-    };
-  }, [rawData.length, data.length, dataset?.filters]);
-
   return (
     <div className="flex flex-col gap-2 p-2 h-full">
-      {/* Filter status indicator */}
-      {filteredDataInfo.hasFilters && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-800">
-          <div className="font-medium">Dataset Filters Applied</div>
-          <div>
-            Showing {filteredDataInfo.filteredRows.toLocaleString()} of{' '}
-            {filteredDataInfo.totalRows.toLocaleString()} rows
-            {filteredDataInfo.filterCount > 0 && (
-              <span>
-                {' '}
-                ({filteredDataInfo.filterCount} filter
-                {filteredDataInfo.filterCount !== 1 ? 's' : ''} active)
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
       <div className="flex flex-col gap-2">
         <div className="flex flex-row gap-2">
           <SearchableSelect

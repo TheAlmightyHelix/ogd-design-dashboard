@@ -10,6 +10,7 @@ import {
   detectGraphCycles,
 } from './progressionGraphsUtil';
 import useChartOption from '../../../hooks/useChartOption';
+import useDataStore from '../../../store/useDataStore';
 
 interface SankeyProps {
   dataset: GameData;
@@ -39,7 +40,11 @@ export const Sankey: React.FC<SankeyProps> = ({ dataset, chartId }) => {
     'edgeMode',
     'TopJobCompletionDestinations',
   );
-  const { data } = dataset;
+  const { getFilteredDataset } = useDataStore();
+
+  // Get filtered dataset from centralized store
+  const filteredDataset = getFilteredDataset(dataset.id);
+  const data = filteredDataset?.data || [];
 
   const sankeyData = useMemo(() => {
     return processDataForSankey(data[0], edgeMode);

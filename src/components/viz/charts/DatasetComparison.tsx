@@ -3,6 +3,7 @@ import SearchableSelect from '../../layout/SearchableSelect';
 import * as d3 from 'd3';
 import useChartOption from '../../../hooks/useChartOption';
 import { tTestTwoSample } from 'simple-statistics';
+import useDataStore from '../../../store/useDataStore';
 
 interface DatasetComparisonProps {
   datasets: GameData[];
@@ -19,11 +20,16 @@ const DatasetComparison: React.FC<DatasetComparisonProps> = ({
   chartId,
 }) => {
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
+  const { getFilteredDataset } = useDataStore();
 
   const dataset1 = datasets[0];
   const dataset2 = datasets[1];
-  const { data: data1 } = dataset1;
-  const { data: data2 } = dataset2;
+
+  // Get filtered datasets from centralized store
+  const filteredDataset1 = getFilteredDataset(dataset1.id);
+  const filteredDataset2 = getFilteredDataset(dataset2.id);
+  const data1 = filteredDataset1?.data || [];
+  const data2 = filteredDataset2?.data || [];
 
   const stats = useMemo(() => {
     if (

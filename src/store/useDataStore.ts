@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, PersistStorage } from 'zustand/middleware';
 import { openDB } from 'idb';
+import { applyFilters } from '../utils/filterUtils';
 
 interface DataStore {
   // states
@@ -10,6 +11,7 @@ interface DataStore {
   addDataset: (dataset: GameData) => void;
   removeDataset: (id: string) => void;
   getDatasetByID: (id: string) => GameData | undefined;
+  getFilteredDataset: (id: string) => GameData | undefined;
   lookupDatasets: (
     game?: string,
     startDate?: string,
@@ -109,6 +111,34 @@ const useDataStore = create<DataStore>()(
         }));
       },
       getDatasetByID: (id: string) => get().datasets[id],
+      getFilteredDataset: (id: string) => {
+        const dataset = get().datasets[id];
+        if (!dataset) return undefined;
+
+        // No filters = return original dataset
+        if (!dataset.filters || Object.keys(dataset.filters).length === 0) {
+          return dataset;
+        }
+
+        // Has filters = apply filtering
+        const filteredData = applyFilters(dataset.data, dataset.filters);
+        // Maintain DSVRowArray structure
+        const filteredDataWithColumns = Object.assign(filteredData, {
+          columns: dataset.data.columns,
+        }) as any;
+
+        return {
+          ...dataset,
+          data: filteredDataWithColumns,
+          originalData: dataset.data,
+          isFiltered: true,
+          filterInfo: {
+            totalRows: dataset.data.length,
+            filteredRows: filteredData.length,
+            filterCount: Object.keys(dataset.filters).length,
+          },
+        };
+      },
       lookupDatasets: (
         game?: string,
         startDate?: string,

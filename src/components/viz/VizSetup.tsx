@@ -19,7 +19,7 @@ const VizSetup = ({
   setVizType,
   setContainerMode,
 }: VizSetupProps) => {
-  const { datasets, hasHydrated } = useDataStore();
+  const { datasets, hasHydrated, getFilteredDataset } = useDataStore();
   const [supportedChartTypes, setSupportedChartTypes] = useState<VizTypeKey[]>(
     [],
   );
@@ -43,18 +43,44 @@ const VizSetup = ({
     }
   };
 
+  // Get filter info for the selected dataset
+  const selectedDataset = gameDataIds[0]
+    ? getFilteredDataset(gameDataIds[0])
+    : null;
+  const filterInfo = selectedDataset?.filterInfo;
+
   return (
     <div className="h-full flex flex-col gap-6 justify-center items-start p-4">
       {!hasHydrated && <div>Loading datasets...</div>}
-      <Select
-        className="w-full"
-        label="Dataset"
-        value={gameDataIds[0]}
-        onChange={(value) => setGameDataIds([value as string])}
-        options={Object.fromEntries(
-          Object.entries(datasets).map(([key]) => [key, key]),
+      <div className="w-full space-y-3">
+        <Select
+          className="w-full"
+          label="Dataset"
+          value={gameDataIds[0]}
+          onChange={(value) => setGameDataIds([value as string])}
+          options={Object.fromEntries(
+            Object.entries(datasets).map(([key]) => [key, key]),
+          )}
+        />
+
+        {/* Filter status indicator */}
+        {filterInfo && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+            <div className="font-medium">Dataset Filters Applied</div>
+            <div>
+              Showing {filterInfo.filteredRows.toLocaleString()} of{' '}
+              {filterInfo.totalRows.toLocaleString()} rows
+              {filterInfo.filterCount > 0 && (
+                <span>
+                  {' '}
+                  ({filterInfo.filterCount} filter
+                  {filterInfo.filterCount !== 1 ? 's' : ''} active)
+                </span>
+              )}
+            </div>
+          </div>
         )}
-      />
+      </div>
       <Select
         className="w-full"
         label="Chart Type"
@@ -65,17 +91,42 @@ const VizSetup = ({
         )}
       />
       {vizType === 'datasetComparison' && (
-        <Select
-          className="w-full"
-          label="Dataset 2  "
-          value={gameDataIds[1]}
-          onChange={(value) =>
-            setGameDataIds([gameDataIds[0], value as string])
-          }
-          options={Object.fromEntries(
-            Object.entries(datasets).map(([key]) => [key, key]),
-          )}
-        />
+        <div className="w-full space-y-3">
+          <Select
+            className="w-full"
+            label="Dataset 2"
+            value={gameDataIds[1]}
+            onChange={(value) =>
+              setGameDataIds([gameDataIds[0], value as string])
+            }
+            options={Object.fromEntries(
+              Object.entries(datasets).map(([key]) => [key, key]),
+            )}
+          />
+
+          {/* Filter status indicator for Dataset 2 */}
+          {gameDataIds[1] &&
+            (() => {
+              const dataset2 = getFilteredDataset(gameDataIds[1]);
+              const filterInfo2 = dataset2?.filterInfo;
+              return filterInfo2 ? (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
+                  <div className="font-medium">Dataset 2 Filters Applied</div>
+                  <div>
+                    Showing {filterInfo2.filteredRows.toLocaleString()} of{' '}
+                    {filterInfo2.totalRows.toLocaleString()} rows
+                    {filterInfo2.filterCount > 0 && (
+                      <span>
+                        {' '}
+                        ({filterInfo2.filterCount} filter
+                        {filterInfo2.filterCount !== 1 ? 's' : ''} active)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+        </div>
       )}
       <button
         disabled={
