@@ -4,6 +4,7 @@ import Select from '../../layout/Select';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import SearchableSelect from '../../layout/SearchableSelect';
 import useChartOption from '../../../hooks/useChartOption';
+import { applyFilters } from '../../../utils/filterUtils';
 
 interface BarChartProps {
   dataset: GameData;
@@ -17,7 +18,15 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
   const isOrdinal = dataset?.columnTypes[feature] === 'Ordinal';
 
   // Create a safe data reference that won't cause issues if dataset is null
-  const data = dataset?.data || [];
+  const rawData = dataset?.data || [];
+
+  // Apply dataset filters to the data
+  const data = useMemo(() => {
+    if (!dataset?.filters || Object.keys(dataset.filters).length === 0) {
+      return rawData;
+    }
+    return applyFilters(rawData, dataset.filters);
+  }, [rawData, dataset?.filters]);
 
   const renderChart = useCallback(
     (
@@ -205,8 +214,41 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
     setFilter([]);
   };
 
+  // Calculate filtered data info
+  const filteredDataInfo = useMemo(() => {
+    const totalRows = rawData.length;
+    const filteredRows = data.length;
+    const hasFilters =
+      dataset?.filters && Object.keys(dataset.filters).length > 0;
+
+    return {
+      totalRows,
+      filteredRows,
+      hasFilters,
+      filterCount: hasFilters ? Object.keys(dataset.filters || {}).length : 0,
+    };
+  }, [rawData.length, data.length, dataset?.filters]);
+
   return (
     <div className="flex flex-col gap-2 p-2 h-full">
+      {/* Filter status indicator */}
+      {filteredDataInfo.hasFilters && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-800">
+          <div className="font-medium">Dataset Filters Applied</div>
+          <div>
+            Showing {filteredDataInfo.filteredRows.toLocaleString()} of{' '}
+            {filteredDataInfo.totalRows.toLocaleString()} rows
+            {filteredDataInfo.filterCount > 0 && (
+              <span>
+                {' '}
+                ({filteredDataInfo.filterCount} filter
+                {filteredDataInfo.filterCount !== 1 ? 's' : ''} active)
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <SearchableSelect
         className="w-full max-w-sm"
         label="Feature"

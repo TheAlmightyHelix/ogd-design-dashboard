@@ -64,7 +64,7 @@ const DatasetSplitter = ({
   const getFeatureOptions = () => {
     return Object.fromEntries(
       Object.entries(dataset.columnTypes)
-        .filter(([_, value]) => value === 'Numeric' || value === 'Categorical')
+        .filter(([_, value]) => value === 'Numeric' || value === 'Categorical' || value === 'Ordinal')
         .map(([key]) => [key, key]),
     );
   };

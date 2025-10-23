@@ -1,7 +1,10 @@
 import { Filter, ChevronRight, ScissorsLineDashed, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Select from '../../layout/Select';
 import useDataStore from '../../../store/useDataStore';
+import SearchableSelect from '../../layout/SearchableSelect';
+import Input from '../../layout/Input';
+import DatasetFilter from './DatasetFilter';
 
 interface DatasetItemProps {
   dataset: GameData;
@@ -18,9 +21,8 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
       Categorical: 'Categorical',
       Ordinal: 'Ordinal',
     } as Record<string, string>;
-    // console.log(dataset.data[0][feature]);
 
-    const TSparseResult = typeof dataset.data[0][feature];
+    const TSparseResult = typeof (dataset.data[0] as any)[feature];
     if (TSparseResult === 'number') {
       return { ...permittedTypes, Numeric: 'Numeric' } as Record<
         string,
@@ -34,6 +36,10 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
   const ItemDetails = () => {
     return (
       <div className="w-full mt-2 px-4">
+        <hr className="border-gray-200 my-2" />
+
+        <DatasetFilter dataset={dataset} />
+
         <hr className="border-gray-200 my-2" />
         <div className="font-bold text-sm text-gray-800 p-2">Features</div>
         <div>
@@ -84,12 +90,12 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
               </div>
             )}
           </div>
-          {/* <div className="flex gap-1 items-center ml-6">
+          <div className="flex gap-1 items-center ml-6">
             <Filter className="w-3 h-3" />
             <div className="text-xs text-gray-500 select-none">
               Some filters applied
             </div>
-          </div> */}
+          </div>
         </div>
         <button
           onClick={() => onSplit(dataset.id)}

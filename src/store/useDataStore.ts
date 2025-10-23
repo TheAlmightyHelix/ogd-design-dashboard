@@ -22,6 +22,18 @@ interface DataStore {
     feature: string,
     datatype: string,
   ) => void;
+  // Filter management
+  addFilter: (
+    datasetId: string,
+    featureName: string,
+    filter: FeatureFilter,
+  ) => void;
+  removeFilter: (datasetId: string, featureName: string) => void;
+  updateFilter: (
+    datasetId: string,
+    featureName: string,
+    filter: FeatureFilter,
+  ) => void;
 }
 
 // IndexedDB storage for larger datasets - only initialize in browser
@@ -132,6 +144,63 @@ const useDataStore = create<DataStore>()(
               columnTypes: {
                 ...state.datasets[id].columnTypes,
                 [feature]: datatype,
+              },
+            },
+          },
+        }));
+      },
+      // Filter management methods
+      addFilter: (
+        datasetId: string,
+        featureName: string,
+        filter: FeatureFilter,
+      ) => {
+        set((state) => ({
+          datasets: {
+            ...state.datasets,
+            [datasetId]: {
+              ...state.datasets[datasetId],
+              filters: {
+                ...state.datasets[datasetId].filters,
+                [featureName]: filter,
+              },
+            },
+          },
+        }));
+      },
+      removeFilter: (datasetId: string, featureName: string) => {
+        set((state) => {
+          const dataset = state.datasets[datasetId];
+          if (!dataset?.filters) return state;
+
+          const newFilters = { ...dataset.filters };
+          delete newFilters[featureName];
+
+          return {
+            datasets: {
+              ...state.datasets,
+              [datasetId]: {
+                ...dataset,
+                filters:
+                  Object.keys(newFilters).length > 0 ? newFilters : undefined,
+              },
+            },
+          };
+        });
+      },
+      updateFilter: (
+        datasetId: string,
+        featureName: string,
+        filter: FeatureFilter,
+      ) => {
+        set((state) => ({
+          datasets: {
+            ...state.datasets,
+            [datasetId]: {
+              ...state.datasets[datasetId],
+              filters: {
+                ...state.datasets[datasetId].filters,
+                [featureName]: filter,
               },
             },
           },

@@ -12,7 +12,18 @@ declare global {
     data: d3.DSVRowArray<Object>;
     columnTypes: Record<string, ColumnType>;
     supportedChartTypes: VizTypeKey[];
+    filters?: Record<string, FeatureFilter>;
     additionalDetails?: Record<string, any>;
   }
   type ColumnType = 'Categorical' | 'Numeric' | 'Ordinal' | 'Time-series';
+  interface FeatureFilter {
+    filterType: 'categorical' | 'numeric';
+    // For categorical filters
+    selectedCategories?: string[];
+    // For numeric filters
+    range?: {
+      min?: number;
+      max?: number;
+    };
+  }
 }

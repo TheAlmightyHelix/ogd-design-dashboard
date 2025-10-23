@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import * as d3 from 'd3';
 import Select from '../../layout/Select';
 import SearchableSelect from '../../layout/SearchableSelect';
@@ -6,6 +6,7 @@ import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import { Minus, Plus } from 'lucide-react';
 import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';
+import { applyFilters } from '../../../utils/filterUtils';
 
 interface HistogramProps {
   dataset: GameData;
@@ -24,7 +25,14 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
     max: number;
   }>(chartId, 'rangeFilter', { min: -Infinity, max: Infinity });
 
-  const { data } = dataset;
+  // Apply dataset filters to the data
+  const rawData = dataset?.data || [];
+  const data = useMemo(() => {
+    if (!dataset?.filters || Object.keys(dataset.filters).length === 0) {
+      return rawData;
+    }
+    return applyFilters(rawData, dataset.filters);
+  }, [rawData, dataset?.filters]);
 
   const renderChart = useCallback(
     (
@@ -219,8 +227,41 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
     );
   };
 
+  // Calculate filtered data info
+  const filteredDataInfo = useMemo(() => {
+    const totalRows = rawData.length;
+    const filteredRows = data.length;
+    const hasFilters =
+      dataset?.filters && Object.keys(dataset.filters).length > 0;
+
+    return {
+      totalRows,
+      filteredRows,
+      hasFilters,
+      filterCount: hasFilters ? Object.keys(dataset.filters || {}).length : 0,
+    };
+  }, [rawData.length, data.length, dataset?.filters]);
+
   return (
     <div className="flex flex-col gap-2 p-2 h-full">
+      {/* Filter status indicator */}
+      {filteredDataInfo.hasFilters && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-800">
+          <div className="font-medium">Dataset Filters Applied</div>
+          <div>
+            Showing {filteredDataInfo.filteredRows.toLocaleString()} of{' '}
+            {filteredDataInfo.totalRows.toLocaleString()} rows
+            {filteredDataInfo.filterCount > 0 && (
+              <span>
+                {' '}
+                ({filteredDataInfo.filterCount} filter
+                {filteredDataInfo.filterCount !== 1 ? 's' : ''} active)
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-2 items-end">
         <SearchableSelect
           className="flex-1 max-w-sm"
