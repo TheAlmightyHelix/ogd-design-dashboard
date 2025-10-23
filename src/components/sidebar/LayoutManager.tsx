@@ -2,6 +2,7 @@ import { Plus, Save, X, Pencil, Download, Upload } from 'lucide-react';
 import useLayoutStore, {
   DashboardLayoutWithMeta,
 } from '../../store/useLayoutStore';
+import useDataStore from '../../store/useDataStore';
 import { useState } from 'react';
 import Input from '../layout/Input';
 
@@ -16,6 +17,8 @@ const LayoutManager = () => {
     setCurrentLayout,
     updateLayoutName,
   } = useLayoutStore();
+
+  const { datasets } = useDataStore();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -38,8 +41,28 @@ const LayoutManager = () => {
   };
 
   const handleExport = (layout: DashboardLayoutWithMeta) => {
-    const serializedLayout = serializeLayout(layout);
-    const blob = new Blob([serializedLayout], {
+    // Get dataset IDs used in this specific layout
+    const usedDatasetIds = new Set<string>();
+    Object.values(layout.charts).forEach((chart) => {
+      chart.datasetIds.forEach((id) => usedDatasetIds.add(id));
+    });
+
+    // Filter datasets to only include those used in this layout
+    const relevantDatasets: Record<string, GameData> = {};
+    usedDatasetIds.forEach((datasetId) => {
+      if (datasets[datasetId]) {
+        relevantDatasets[datasetId] = datasets[datasetId];
+      }
+    });
+
+    // Export only the specific layout and relevant datasets
+    const exportData = {
+      version: 2,
+      layout: layout,
+      datasets: relevantDatasets,
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
       type: 'application/json',
     });
     const url = URL.createObjectURL(blob);
@@ -53,9 +76,33 @@ const LayoutManager = () => {
   const handleImport = (file: File) => {
     const fileReader = new FileReader();
     fileReader.onload = (e) => {
-      const layoutJson = e.target?.result as string;
-      const layout = loadLayout(layoutJson);
-      setCurrentLayout(layout.id);
+      const importJson = e.target?.result as string;
+      const importData = JSON.parse(importJson);
+
+      // Check if it's the new format (version 2+)
+      if (importData.version >= 2) {
+        // Restore the specific layout
+        if (importData.layout) {
+          useLayoutStore.setState((state) => ({
+            layouts: {
+              ...state.layouts,
+              [importData.layout.id]: importData.layout,
+            },
+          }));
+          setCurrentLayout(importData.layout.id);
+        }
+
+        // Restore only the relevant datasets
+        if (importData.datasets) {
+          useDataStore.setState((state) => ({
+            datasets: { ...state.datasets, ...importData.datasets },
+          }));
+        }
+      } else {
+        // Legacy format - use old method
+        const layout = loadLayout(importJson);
+        setCurrentLayout(layout.id);
+      }
     };
     fileReader.readAsText(file);
   };
