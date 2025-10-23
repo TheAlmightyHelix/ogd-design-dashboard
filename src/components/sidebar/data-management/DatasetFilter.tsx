@@ -22,8 +22,8 @@ export default function DatasetFilter({ dataset }: { dataset: GameData }) {
   };
 
   return (
-    <div className="space-y-3">
-      <div className="font-bold text-sm text-gray-800 px-3 py-2 border-b border-gray-200">
+    <div className="space-y-3 mb-3">
+      <div className="font-bold text-sm text-gray-800 px-3 pt-2">
         Filters
         {Object.keys(dataset.filters ?? {}).length > 0 && (
           <span className="ml-2 text-xs text-gray-500 font-normal">
@@ -58,7 +58,7 @@ export default function DatasetFilter({ dataset }: { dataset: GameData }) {
         {!showAddFilter && (
           <button
             onClick={handleAddFilter}
-            className="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg font-medium cursor-pointer shadow-sm hover:bg-blue-600 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className=" inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg font-medium cursor-pointer shadow-sm hover:bg-blue-600 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Filter
