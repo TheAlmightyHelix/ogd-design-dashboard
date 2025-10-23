@@ -14,7 +14,8 @@ interface DatasetItemProps {
 
 const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
   const [showDetails, setShowDetails] = useState(false);
-  const { updateDatasetColumnType } = useDataStore();
+  const { updateDatasetColumnType, getFilteredDataset } = useDataStore();
+  const filteredDataset = getFilteredDataset(dataset.id);
 
   const getColumnTypeOptions = (feature: string) => {
     const permittedTypes = {
@@ -90,12 +91,16 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
               </div>
             )}
           </div>
-          <div className="flex gap-1 items-center ml-6">
-            <Filter className="w-3 h-3" />
-            <div className="text-xs text-gray-500 select-none">
-              Some filters applied
+          {filteredDataset?.filterInfo && (
+            <div className="flex gap-1 items-center ml-6">
+              <Filter className="w-3 h-3" />
+              <div className="text-xs text-gray-500 select-none">
+                {filteredDataset.filterInfo?.filterCount} filter(s) applied (
+                {filteredDataset.filterInfo?.filteredRows} of{' '}
+                {filteredDataset.filterInfo?.totalRows} rows)
+              </div>
             </div>
-          </div>
+          )}
         </div>
         <button
           onClick={() => onSplit(dataset.id)}
