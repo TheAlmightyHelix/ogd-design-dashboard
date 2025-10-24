@@ -7,6 +7,7 @@ import { Minus, Plus } from 'lucide-react';
 import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
+import FeatureSelect from '../../layout/select/FeatureSelect';
 
 interface HistogramProps {
   dataset: GameData;
@@ -226,13 +227,18 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
   return (
     <div className="flex flex-col gap-2 p-2 h-full">
       <div className="flex gap-2 items-end">
-        <SearchableSelect
+        {/* <SearchableSelect
           className="flex-1 max-w-sm"
           label="Feature"
           placeholder="Select a feature..."
           value={feature}
           onChange={(value) => setFeature(value)}
           options={getFeatureOptions()}
+          /> */}
+        <FeatureSelect
+          feature={feature}
+          handleFeatureChange={(value) => setFeature(value)}
+          featureOptions={getFeatureOptions()}
         />
         <Select
           className="w-24"

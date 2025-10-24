@@ -187,7 +187,12 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
   const filterOptions = useMemo(() => {
     if (!feature || !dataset) return {};
     const categories = Array.from(
-      new Set(data.map((d) => (d as Record<string, any>)[feature].toString())),
+      new Set(
+        data
+          .map((d) => (d as Record<string, any>)[feature])
+          .filter((value) => value != null)
+          .map((value) => value.toString()),
+      ),
     );
     return Object.fromEntries(
       categories.map((category) => [category, category]),
