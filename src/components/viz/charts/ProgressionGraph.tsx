@@ -97,10 +97,21 @@ export const ProgressionGraph: React.FC<ProgressionGraphProps> = ({
       svg.call(zoom);
 
       // Create color scale for node colors (red to green based on percent complete)
-      const colorScale = d3
-        .scaleSequential()
-        .domain([0, 100])
-        .interpolator(d3.interpolateRdYlGn);
+      const nodeColorDatatype = encodings.nodeColor
+        ? typeof nodes[0][encodings.nodeColor]
+        : null;
+      let colorScale:
+        | d3.ScaleSequential<string, never>
+        | d3.ScaleOrdinal<string, string>
+        | undefined;
+      if (nodeColorDatatype === 'number') {
+        colorScale = d3
+          .scaleSequential()
+          .domain([0, 100])
+          .interpolator(d3.interpolateRdYlGn);
+      } else {
+        colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+      }
 
       // Create size scale for node radius (based on avg time per attempt)
       const sizeScale = d3
@@ -117,7 +128,7 @@ export const ProgressionGraph: React.FC<ProgressionGraphProps> = ({
       const widthScale = d3
         .scaleLinear()
         .domain([0, d3.max(links, (d) => d[encodings.linkWidth] || 0) || 1])
-        .range([1, 8]);
+        .range([1, 20]);
 
       // Create force simulation
       const simulation = d3
@@ -157,7 +168,7 @@ export const ProgressionGraph: React.FC<ProgressionGraphProps> = ({
         .attr('stroke-width', (d) => widthScale(d[encodings.linkWidth] || 0))
         .attr('fill', 'none')
         .on('mouseover', function (event, d: any) {
-          const tooltipContent = `${d.sourceName} → ${d.targetName}\n: ${d[encodings.linkWidth] || 0}`;
+          const tooltipContent = `${d.source.id} → ${d.target.id}\nCount: ${d[encodings.linkWidth] || 0}`;
 
           tooltip
             .style('opacity', 1)
@@ -190,13 +201,13 @@ export const ProgressionGraph: React.FC<ProgressionGraphProps> = ({
         .attr('stroke', '#fff')
         .attr('stroke-width', 1.5)
         .on('mouseover', function (event, d: any) {
-          let tooltipContent = `${encodings.nodeTooltip ? d[encodings.nodeTooltip] : ''}`;
-
-          tooltip
-            .style('opacity', 1)
-            .html(tooltipContent)
-            .style('left', event.pageX + 10 + 'px')
-            .style('top', event.pageY - 10 + 'px');
+          if (encodings.nodeTooltip) {
+            tooltip
+              .style('opacity', 1)
+              .html(d[encodings.nodeTooltip])
+              .style('left', event.pageX + 10 + 'px')
+              .style('top', event.pageY - 10 + 'px');
+          }
         })
         .on('mouseout', function () {
           tooltip.style('opacity', 0);
