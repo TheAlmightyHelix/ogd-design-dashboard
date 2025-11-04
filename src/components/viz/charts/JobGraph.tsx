@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import * as d3 from 'd3';
 import Select from '../../layout/Select';
-import { getNodes, getEdges, EdgeMode } from './progressionGraphsUtil';
+import { getNodes, getEdges, EdgeMode } from './jobGraphUtil';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 

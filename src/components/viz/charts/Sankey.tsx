@@ -8,7 +8,7 @@ import {
   getNodes,
   getEdges,
   detectGraphCycles,
-} from './progressionGraphsUtil';
+} from './jobGraphUtil';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 
