@@ -87,13 +87,12 @@ const getSupportedChartTypes = (
     columns.some((column) => column.includes(subfeature)),
   );
 
-  if (
-    featureLevel === 'population' &&
-    jobGraphFeaturesSupported &&
-    jobGraphSubfeaturesSupported
-  ) {
-    supportedChartTypes.push('jobGraph');
-    supportedChartTypes.push('sankey');
+  if (featureLevel === 'population') {
+    supportedChartTypes.push('progressionGraph');
+    if (jobGraphFeaturesSupported && jobGraphSubfeaturesSupported) {
+      supportedChartTypes.push('jobGraph');
+      supportedChartTypes.push('sankey');
+    }
   }
 
   if (featureLevel === 'player' || featureLevel === 'session') {

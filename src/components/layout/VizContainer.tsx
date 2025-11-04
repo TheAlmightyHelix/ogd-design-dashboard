@@ -5,6 +5,7 @@ import { Histogram } from '../viz/charts/Histogram';
 import { ScatterPlot } from '../viz/charts/ScatterPlot';
 import { Timeline } from '../viz/charts/Timeline';
 import { JobGraph } from '../viz/charts/JobGraph';
+import { ProgressionGraph } from '../viz/charts/ProgressionGraph';
 import { Sankey } from '../viz/charts/Sankey';
 import VizSetup from '../viz/VizSetup';
 import DescriptiveStatistics from '../viz/charts/DescriptiveStatistics';
@@ -124,6 +125,13 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
           )}
           {vizType === 'jobGraph' && (
             <JobGraph key={chartId} chartId={chartId} dataset={dataset} />
+          )}
+          {vizType === 'progressionGraph' && (
+            <ProgressionGraph
+              key={chartId}
+              chartId={chartId}
+              dataset={dataset}
+            />
           )}
           {vizType === 'sankey' && (
             <Sankey key={chartId} chartId={chartId} dataset={dataset} />
