@@ -15,6 +15,7 @@ import useLayoutStore from '../../store/useLayoutStore';
 import DatasetComparison from '../viz/charts/DatasetComparison';
 import useDataStore from '../../store/useDataStore';
 import DatasetNotFound from '../viz/DatasetNotFound';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface VizContainerProps {
   style?: React.CSSProperties;
@@ -217,7 +218,11 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
         </div>
 
         {/* Chart content */}
-        <div className="h-full w-full">{renderChartContent()}</div>
+        <div className="h-full w-full">
+          <ErrorBoundary resetKeys={[chartId, vizType, gameDataIds.join(',')]}>
+            {renderChartContent()}
+          </ErrorBoundary>
+        </div>
         {children}
       </div>
     );

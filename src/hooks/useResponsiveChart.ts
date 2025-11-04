@@ -66,9 +66,19 @@ export const useResponsiveChart = (
       .attr('height', dimensions.height);
 
     // Call the render function and store cleanup
-    const cleanup = renderChart(d3.select(svgRef.current), dimensions);
-    if (cleanup) {
-      cleanupRef.current = cleanup;
+    // Note: Errors thrown here won't be caught by ErrorBoundary
+    // (ErrorBoundaries only catch errors during render, not in useEffect)
+    // For async errors, components should handle them individually
+    try {
+      const cleanup = renderChart(d3.select(svgRef.current), dimensions);
+      if (cleanup) {
+        cleanupRef.current = cleanup;
+      }
+    } catch (error) {
+      console.error('Error rendering chart:', error);
+      // Re-throw to propagate error (though ErrorBoundary won't catch it)
+      // This is mainly for logging and debugging
+      throw error;
     }
   }, [dimensions, renderChart]);
 
