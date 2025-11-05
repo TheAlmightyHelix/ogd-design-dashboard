@@ -3,7 +3,7 @@ import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import useDataStore from '../../../store/useDataStore';
 import SearchableSelect from '../../layout/SearchableSelect';
 import * as d3 from 'd3';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 interface ForceDirectedGraphProps {
   dataset: GameData;
@@ -35,13 +35,36 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
   const data = filteredDataset?.data || [];
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
 
-  if (!data[0] || !data[0].hasOwnProperty(feature)) {
-    return <></>;
-  }
-
-  const { nodes, links, encodings }: Graph = JSON.parse(
-    (data[0] as any)[feature] as string,
-  );
+  const { nodes, links, encodings } = useMemo(() => {
+    const defaultGraph: Graph = {
+      nodes: [],
+      links: [],
+      encodings: {
+        nodeLabel: '',
+        linkWidth: '',
+        nodeColor: null,
+        nodeSize: null,
+        nodeTooltip: null,
+      },
+    };
+    if (feature && data.length > 0) {
+      try {
+        const parsed = JSON.parse((data[0] as any)[feature] as string);
+        return {
+          nodes: parsed.nodes,
+          links: parsed.links,
+          encodings: parsed.encodings,
+        };
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    return {
+      nodes: defaultGraph.nodes,
+      links: defaultGraph.links,
+      encodings: defaultGraph.encodings,
+    };
+  }, [feature, data]);
 
   const renderChart = useCallback(
     (
@@ -50,6 +73,23 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
     ) => {
       // Clear previous content
       svg.selectAll('*').remove();
+
+      if (!feature) {
+        // Render empty chart with placeholder text
+        svg
+          .append('text')
+          .attr('x', dimensions.width / 2)
+          .attr('y', dimensions.height / 2)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#6b7280')
+          .text(
+            !feature
+              ? 'Select a feature to display chart'
+              : 'No data available',
+          );
+        return;
+      }
+
       // Create a group for all graph elements
       const g = svg.append('g');
 
@@ -130,7 +170,10 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       // Create width scale for edges (based on number of players)
       const widthScale = d3
         .scaleLinear()
-        .domain([0, d3.max(links, (d) => d[encodings.linkWidth] || 0) || 1])
+        .domain([
+          0,
+          d3.max(links, (d: any) => Number(d[encodings.linkWidth]) || 0) || 1,
+        ])
         .range([1, 20]);
 
       // Create force simulation
@@ -168,7 +211,9 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
         .attr('stroke', '#999')
         .attr('stroke-opacity', 0.6)
         .attr('marker-end', 'url(#arrow)')
-        .attr('stroke-width', (d) => widthScale(d[encodings.linkWidth] || 0))
+        .attr('stroke-width', (d: any) =>
+          widthScale(Number(d[encodings.linkWidth]) || 0),
+        )
         .attr('fill', 'none')
         .on('mouseover', function (event, d: any) {
           const tooltipContent = `${d.source.id} → ${d.target.id}\nCount: ${d[encodings.linkWidth] || 0}`;
@@ -289,7 +334,7 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
         d3.selectAll('.tooltip').remove();
       };
     },
-    [data, feature],
+    [nodes, links, encodings],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
