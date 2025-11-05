@@ -23,7 +23,12 @@ declare global {
       filterCount: number;
     };
   }
-  type ColumnType = 'Categorical' | 'Numeric' | 'Ordinal' | 'Time-series';
+  type ColumnType =
+    | 'Categorical'
+    | 'Numeric'
+    | 'Ordinal'
+    | 'Time-series'
+    | 'Graph';
   interface FeatureFilter {
     filterType: 'categorical' | 'numeric';
     // For categorical filters

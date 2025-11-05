@@ -1,15 +1,16 @@
+import useChartOption from '../../../hooks/useChartOption';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import useDataStore from '../../../store/useDataStore';
 import SearchableSelect from '../../layout/SearchableSelect';
 import * as d3 from 'd3';
 import { useCallback } from 'react';
 
-interface ProgressionGraphProps {
+interface ForceDirectedGraphProps {
   dataset: GameData;
   chartId: string;
 }
 
-interface PlayerProgression {
+interface Graph {
   nodes: { id: string; [key: string]: any }[];
   links: { source: string; target: string; [key: string]: any }[];
   encodings: {
@@ -18,27 +19,29 @@ interface PlayerProgression {
     nodeLabel: string;
     nodeTooltip: string | null;
     linkWidth: string;
-    linkColor: string | null;
   };
 }
 
-export const ProgressionGraph: React.FC<ProgressionGraphProps> = ({
+/**
+ * ForceDirectedGraph is a chart that displays a graph of a player's progress.
+ * This chart type is only compatible with the 'PlayerProgression' feature and its subfeatures in the dataset.
+ */
+export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
   chartId,
   dataset,
 }) => {
   const { getFilteredDataset } = useDataStore();
   const filteredDataset = getFilteredDataset(dataset.id);
   const data = filteredDataset?.data || [];
+  const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
 
-  if (!data[0] || !data[0].hasOwnProperty('PlayerProgression')) {
+  if (!data[0] || !data[0].hasOwnProperty(feature)) {
     return <></>;
   }
 
-  const playerProgression = JSON.parse(
-    (data[0] as any)['PlayerProgression'] as string,
+  const { nodes, links, encodings }: Graph = JSON.parse(
+    (data[0] as any)[feature] as string,
   );
-
-  const { nodes, links, encodings }: PlayerProgression = playerProgression;
 
   const renderChart = useCallback(
     (
@@ -286,13 +289,32 @@ export const ProgressionGraph: React.FC<ProgressionGraphProps> = ({
         d3.selectAll('.tooltip').remove();
       };
     },
-    [data],
+    [data, feature],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
+  const getFeatureOptions = () => {
+    return Object.fromEntries(
+      Object.entries(dataset.columnTypes)
+        .filter(([_, value]) => value === 'Graph')
+        .map(([key]) => [key, key]),
+    );
+  };
+
+  const handleFeatureChange = (value: string) => {
+    setFeature(value);
+  };
 
   return (
     <div className="flex flex-col gap-2 p-2 h-full">
+      <SearchableSelect
+        className="w-full max-w-sm"
+        label="Feature"
+        placeholder="Select a feature..."
+        value={feature}
+        onChange={handleFeatureChange}
+        options={getFeatureOptions()}
+      />
       <div ref={containerRef} className="flex-1 min-h-0 relative">
         <svg ref={svgRef} className="w-full h-full" />
       </div>

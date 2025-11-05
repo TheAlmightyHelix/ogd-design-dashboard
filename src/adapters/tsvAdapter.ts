@@ -51,7 +51,12 @@ const getColumnTypes = (extractedData: d3.DSVParsedArray<object>) => {
   if (Object.hasOwn(extractedData, '0')) {
     const firstRow = extractedData[0];
     for (const [key, value] of Object.entries(firstRow)) {
-      columnTypes[key] = typeof value === 'number' ? 'Numeric' : 'Categorical';
+      if (key.includes('PlayerProgression')) {
+        columnTypes[key] = 'Graph';
+      } else {
+        columnTypes[key] =
+          typeof value === 'number' ? 'Numeric' : 'Categorical';
+      }
     }
   }
   return columnTypes;
@@ -87,8 +92,14 @@ const getSupportedChartTypes = (
     columns.some((column) => column.includes(subfeature)),
   );
 
+  const forceDirectedGraphSupported = columns.some((column) =>
+    column.includes('PlayerProgression'),
+  );
+
   if (featureLevel === 'population') {
-    supportedChartTypes.push('progressionGraph');
+    if (forceDirectedGraphSupported) {
+      supportedChartTypes.push('forceDirectedGraph');
+    }
     if (jobGraphFeaturesSupported && jobGraphSubfeaturesSupported) {
       supportedChartTypes.push('jobGraph');
       supportedChartTypes.push('sankey');
