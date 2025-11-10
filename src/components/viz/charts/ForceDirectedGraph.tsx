@@ -1,7 +1,7 @@
 import useChartOption from '../../../hooks/useChartOption';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import useDataStore from '../../../store/useDataStore';
-import SearchableSelect from '../../layout/SearchableSelect';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import { useCallback, useMemo } from 'react';
 
