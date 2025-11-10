@@ -6,12 +6,13 @@ import {
   regressionExp,
   regressionLog,
 } from 'd3-regression';
-import Select from '../../layout/Select';
-import SearchableSelect from '../../layout/SearchableSelect';
+import Select from '../../layout/select/Select';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
+import FeatureSelect from '../../layout/select/FeatureSelect';
 
 interface ScatterPlotProps {
   dataset: GameData;
@@ -283,7 +284,7 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
     <div className="flex flex-col gap-2 p-2 h-full">
       <div className="flex flex-col gap-2">
         <div className="flex flex-row gap-2">
-          <SearchableSelect
+          {/* <SearchableSelect
             className="flex-3"
             label="X-Axis"
             placeholder="Select feature..."
@@ -296,6 +297,14 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
               });
             }}
             options={getFeatureOptions()}
+          /> */}
+          <FeatureSelect
+            feature={xFeature}
+            handleFeatureChange={(value) => {
+              setXFeature(value);
+              setXRangeFilter({ min: -Infinity, max: Infinity });
+            }}
+            featureOptions={getFeatureOptions()}
           />
           <Input
             className="flex-1"
@@ -331,7 +340,7 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
           />
         </div>
         <div className="flex flex-row gap-2">
-          <SearchableSelect
+          {/* <SearchableSelect
             className="flex-3"
             label="Y-Axis"
             placeholder="Select feature..."
@@ -341,6 +350,14 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
               setYRangeFilter({ min: -Infinity, max: Infinity });
             }}
             options={getFeatureOptions()}
+          /> */}
+          <FeatureSelect
+            feature={yFeature}
+            handleFeatureChange={(value) => {
+              setYFeature(value);
+              setYRangeFilter({ min: -Infinity, max: Infinity });
+            }}
+            featureOptions={getFeatureOptions()}
           />
           <Input
             className="flex-1"

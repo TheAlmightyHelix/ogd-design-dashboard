@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import SearchableSelect from '../../layout/SearchableSelect';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import useChartOption from '../../../hooks/useChartOption';
 import { tTestTwoSample } from 'simple-statistics';
 import useDataStore from '../../../store/useDataStore';
+import FeatureSelect from '../../layout/select/FeatureSelect';
 
 interface DatasetComparisonProps {
   datasets: GameData[];
@@ -69,13 +70,18 @@ const DatasetComparison: React.FC<DatasetComparisonProps> = ({
   return (
     <div className="flex flex-col gap-2 p-2 h-full ">
       <div className="flex flex-row gap-2">
-        <SearchableSelect
+        {/* <SearchableSelect
           className="w-full max-w-sm"
           label="Feature"
           placeholder="Select a feature..."
           value={feature}
           onChange={(value) => setFeature(value)}
           options={getFeatureOptions()}
+        /> */}
+        <FeatureSelect
+          feature={feature}
+          handleFeatureChange={(value) => setFeature(value)}
+          featureOptions={getFeatureOptions()}
         />
       </div>
       <div className="flex flex-row gap-2 w-full justify-center h-full">

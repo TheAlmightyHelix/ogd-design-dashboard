@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import * as d3 from 'd3';
-import Select from '../../layout/Select';
-import SearchableSelect from '../../layout/SearchableSelect';
+import Select from '../../layout/select/Select';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import { Minus, Plus } from 'lucide-react';
 import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
+import FeatureSelect from '../../layout/select/FeatureSelect';
 
 interface HistogramProps {
   dataset: GameData;
@@ -226,13 +227,18 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
   return (
     <div className="flex flex-col gap-2 p-2 h-full">
       <div className="flex gap-2 items-end">
-        <SearchableSelect
+        {/* <SearchableSelect
           className="flex-1 max-w-sm"
           label="Feature"
           placeholder="Select a feature..."
           value={feature}
           onChange={(value) => setFeature(value)}
           options={getFeatureOptions()}
+          /> */}
+        <FeatureSelect
+          feature={feature}
+          handleFeatureChange={(value) => setFeature(value)}
+          featureOptions={getFeatureOptions()}
         />
         <Select
           className="w-24"

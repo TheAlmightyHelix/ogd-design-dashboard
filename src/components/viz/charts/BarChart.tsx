@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
-import Select from '../../layout/Select';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
-import SearchableSelect from '../../layout/SearchableSelect';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
+import FeatureSelect from '../../layout/select/FeatureSelect';
 
 interface BarChartProps {
   dataset: GameData;
@@ -187,7 +187,12 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
   const filterOptions = useMemo(() => {
     if (!feature || !dataset) return {};
     const categories = Array.from(
-      new Set(data.map((d) => (d as Record<string, any>)[feature].toString())),
+      new Set(
+        data
+          .map((d) => (d as Record<string, any>)[feature])
+          .filter((value) => value != null)
+          .map((value) => value.toString()),
+      ),
     );
     return Object.fromEntries(
       categories.map((category) => [category, category]),
@@ -210,13 +215,18 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
 
   return (
     <div className="flex flex-col gap-2 p-2 h-full">
-      <SearchableSelect
+      {/* <SearchableSelect
         className="w-full max-w-sm"
         label="Feature"
         placeholder="Select a feature..."
         value={feature}
         onChange={handleFeatureChange}
         options={getFeatureOptions()}
+      /> */}
+      <FeatureSelect
+        feature={feature}
+        handleFeatureChange={handleFeatureChange}
+        featureOptions={getFeatureOptions()}
       />
       {feature && (
         <SearchableSelect

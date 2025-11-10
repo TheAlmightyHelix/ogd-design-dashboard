@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import * as d3 from 'd3';
 import { sankey, sankeyLinkHorizontal } from 'd3-sankey';
-import Select from '../../layout/Select';
+import Select from '../../layout/select/Select';
 import {
   EdgeMode,
   getNodes,
