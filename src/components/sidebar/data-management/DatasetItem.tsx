@@ -15,6 +15,84 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
   const { updateDatasetColumnType, getFilteredDataset } = useDataStore();
   const filteredDataset = getFilteredDataset(dataset.id);
 
+  const iteratedFeatureMap = useMemo(() => {
+    const map: Record<string, string[]> = {};
+
+    Object.keys(dataset.columnTypes).forEach((featureKey) => {
+      const [iteration, baseFeature] = featureKey.split('_');
+      if (!baseFeature) return;
+
+      if (!map[baseFeature]) {
+        map[baseFeature] = [];
+      }
+
+      map[baseFeature].push(featureKey);
+    });
+
+    Object.keys(map).forEach((baseFeature) => {
+      if (
+        dataset.columnTypes[baseFeature] &&
+        !map[baseFeature].includes(baseFeature)
+      ) {
+        map[baseFeature].push(baseFeature);
+      }
+    });
+
+    return map;
+  }, [dataset.columnTypes]);
+
+  interface DisplayFeature {
+    displayName: string;
+    relatedFeatureKeys: string[];
+    sampleFeatureKey: string;
+    columnType: ColumnType | undefined;
+    isIterated: boolean;
+  }
+
+  const displayFeatures = useMemo(() => {
+    const seenIteratedBases = new Set<string>();
+    const features: DisplayFeature[] = [];
+
+    Object.entries(dataset.columnTypes).forEach(([featureKey, columnType]) => {
+      if (featureKey.includes('_')) {
+        const [, baseFeature] = featureKey.split('_');
+        if (!baseFeature || seenIteratedBases.has(baseFeature)) return;
+        seenIteratedBases.add(baseFeature);
+
+        const relatedFeatureKeys = iteratedFeatureMap[baseFeature] ?? [
+          featureKey,
+        ];
+
+        const sampleFeatureKey =
+          relatedFeatureKeys.find((key) => key.includes('_')) ||
+          relatedFeatureKeys[0];
+
+        const resolvedColumnType =
+          relatedFeatureKeys
+            .map((key) => dataset.columnTypes[key])
+            .find((type) => Boolean(type)) ?? columnType;
+
+        features.push({
+          displayName: baseFeature,
+          relatedFeatureKeys,
+          sampleFeatureKey,
+          columnType: resolvedColumnType,
+          isIterated: true,
+        });
+      } else if (!iteratedFeatureMap[featureKey]) {
+        features.push({
+          displayName: featureKey,
+          relatedFeatureKeys: [featureKey],
+          sampleFeatureKey: featureKey,
+          columnType,
+          isIterated: false,
+        });
+      }
+    });
+
+    return features;
+  }, [dataset.columnTypes, iteratedFeatureMap]);
+
   const getColumnTypeOptions = (feature: string) => {
     if (feature.includes('PlayerProgression')) {
       return { Graph: 'Graph' };
@@ -46,21 +124,38 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
         <hr className="border-gray-200 my-2" />
         <div className="font-bold text-sm text-gray-800 p-2">Features</div>
         <div>
-          {Object.entries(dataset.columnTypes).map(([feature, columnType]) => (
-            <div
-              className="grid grid-cols-4 gap-2 items-center px-2 py-1 w-full hover:bg-gray-100 rounded-md transition-all duration-200"
-              key={feature}
-            >
-              <div className="text-sm col-span-3">{feature}</div>
-              <Select
-                value={columnType}
-                onChange={(value) =>
-                  updateDatasetColumnType(dataset.id, feature, value)
-                }
-                options={getColumnTypeOptions(feature)}
-              />
-            </div>
-          ))}
+          {displayFeatures.map(
+            ({
+              displayName,
+              relatedFeatureKeys,
+              sampleFeatureKey,
+              columnType,
+              isIterated,
+            }) => (
+              <div
+                className="grid grid-cols-4 gap-2 items-center px-2 py-1 w-full hover:bg-gray-100 rounded-md transition-all duration-200"
+                key={displayName}
+              >
+                <div className="text-sm col-span-3">
+                  {displayName}
+                  {isIterated && (
+                    <span className="ml-1 text-xs text-gray-500">
+                      (iterated)
+                    </span>
+                  )}
+                </div>
+                <Select
+                  value={columnType ?? ''}
+                  onChange={(value) => {
+                    relatedFeatureKeys.forEach((featureKey) => {
+                      updateDatasetColumnType(dataset.id, featureKey, value);
+                    });
+                  }}
+                  options={getColumnTypeOptions(sampleFeatureKey)}
+                />
+              </div>
+            ),
+          )}
         </div>
       </div>
     );
