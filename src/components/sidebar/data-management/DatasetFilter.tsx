@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import Input from '../../layout/Input';
 import useDataStore from '../../../store/useDataStore';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Info } from 'lucide-react';
 import * as d3 from 'd3';
+import FeatureSelect from '../../layout/select/FeatureSelect';
 
 export default function DatasetFilter({ dataset }: { dataset: GameData }) {
   const { addFilter, removeFilter, updateFilter } = useDataStore();
@@ -58,7 +59,7 @@ export default function DatasetFilter({ dataset }: { dataset: GameData }) {
         {!showAddFilter && (
           <button
             onClick={handleAddFilter}
-            className=" inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg font-medium cursor-pointer shadow-sm hover:bg-blue-600 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className=" inline-flex items-center justify-center px-3 py-1 bg-blue-400 text-white rounded-lg font-medium cursor-pointer shadow-sm hover:bg-blue-500 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Filter
@@ -294,12 +295,10 @@ const AddFilterItem = ({ dataset, onAdd, onCancel }: AddFilterItemProps) => {
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
       <div className="space-y-4">
         <div>
-          <SearchableSelect
-            label="Select feature to filter"
-            value={selectedFeature}
-            onChange={setSelectedFeature}
-            options={availableFeatures}
-            placeholder="Choose a feature..."
+          <FeatureSelect
+            feature={selectedFeature}
+            handleFeatureChange={setSelectedFeature}
+            featureOptions={availableFeatures}
           />
         </div>
 
@@ -307,9 +306,10 @@ const AddFilterItem = ({ dataset, onAdd, onCancel }: AddFilterItemProps) => {
           <div className="space-y-3">
             {isNumeric && (
               <div className="space-y-3">
-                <div className="text-xs text-gray-600 bg-white px-3 py-2 rounded border">
-                  <span className="font-medium">Data range:</span> {range[0]} to{' '}
-                  {range[1]}
+                <div className="flex items-center text-xs text-gray-600 py-2">
+                  <Info className="w-4 h-4 mr-2" />
+                  <span className="font-medium">Data range:&nbsp;</span>{' '}
+                  {range[0]} to {range[1]}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Input
