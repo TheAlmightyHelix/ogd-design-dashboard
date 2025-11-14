@@ -1,10 +1,17 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import * as d3 from 'd3';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
+import { applyFilters } from '../../../utils/filterUtils';
 
 interface BarChartProps {
   dataset: GameData;
@@ -13,21 +20,64 @@ interface BarChartProps {
 
 export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
-  const [filter, setFilter] = useChartOption<string[]>(chartId, 'filter', []);
-  const { getFilteredDataset } = useDataStore();
+  const [localFilter, setLocalFilter] = useChartOption<string[]>(
+    chartId,
+    'filter',
+    [],
+  );
+  const { addFilter, removeFilter } = useDataStore();
+  const datasetRecord = useDataStore(
+    useCallback((state) => state.datasets[dataset.id], [dataset.id]),
+  );
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const isOrdinal = dataset?.columnTypes[feature] === 'Ordinal';
 
   // Get filtered dataset from centralized store
-  const filteredDataset = getFilteredDataset(dataset.id);
-  const data = filteredDataset?.data || [];
+  const filtersExcludingFeature = useMemo(() => {
+    if (!datasetRecord?.filters) return undefined;
+    const { [feature]: _ignored, ...rest } = datasetRecord.filters;
+    return Object.keys(rest).length > 0 ? rest : undefined;
+  }, [datasetRecord?.filters, feature]);
+
+  const data = useMemo(() => {
+    if (!datasetRecord?.data) return [];
+    if (!filtersExcludingFeature) {
+      return datasetRecord.data;
+    }
+    const filteredData = applyFilters(
+      datasetRecord.data,
+      filtersExcludingFeature,
+    );
+    return Object.assign(filteredData, {
+      columns: datasetRecord.data.columns,
+    }) as typeof datasetRecord.data;
+  }, [datasetRecord?.data, filtersExcludingFeature]);
 
   // prevent invalid feature selection
   useEffect(() => {
     if (feature && !getFeatureOptions()[feature]) {
       setFeature('');
     }
+    setSelectedCategories([]);
   }, [feature]);
+
+  const prevSelectedCategoriesRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    const prevSelectedCategories = prevSelectedCategoriesRef.current;
+    // console.log('Selected categories:', selectedCategories);
+    if (selectedCategories.length > 0) {
+      addFilter(dataset.id, feature, {
+        filterType: 'categorical',
+        selectedCategories,
+      });
+    }
+    if (prevSelectedCategories.length > 0 && selectedCategories.length === 0) {
+      removeFilter(dataset.id, feature);
+    }
+    prevSelectedCategoriesRef.current = selectedCategories;
+  }, [addFilter, dataset.id, feature, removeFilter, selectedCategories]);
 
   const renderChart = useCallback(
     (
@@ -65,7 +115,9 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
           value: String(value),
           count,
         }))
-        .filter((d) => filter.length === 0 || filter.includes(d.value));
+        .filter(
+          (d) => localFilter.length === 0 || localFilter.includes(d.value),
+        );
 
       // Sort data based on feature type
       if (isOrdinal) {
@@ -125,8 +177,34 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
         .attr('y', (d) => yScale(d.count))
         .attr('width', xScale.bandwidth())
         .attr('height', (d) => height - yScale(d.count))
-        .attr('fill', '#3b82f6')
-        .attr('rx', 2);
+        .attr('fill', (d) =>
+          selectedCategories.length && !selectedCategories.includes(d.value)
+            ? '#d1d5db'
+            : '#3b82f6',
+        )
+        .attr('rx', 2)
+        .style('cursor', 'pointer')
+        .on('mouseover', function () {
+          d3.select(this)
+            .transition()
+            .duration(200) // 1 second transition
+            .style('opacity', 0.8);
+        })
+        .on('mouseout', function () {
+          d3.select(this)
+            .transition()
+            .duration(200) // 1 second transition
+            .style('opacity', 1);
+        })
+        .on('click', (_, d) => {
+          setSelectedCategories((current) => {
+            const isSelected = current.includes(d.value);
+            const nextSelected = isSelected
+              ? current.filter((value) => value !== d.value)
+              : [...current, d.value];
+            return nextSelected;
+          });
+        });
 
       // Add bar labels (only if there's enough space)
       if (chartData.length <= 20) {
@@ -186,7 +264,7 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
         .attr('fill', '#374151')
         .text(feature);
     },
-    [feature, data, filter],
+    [feature, data, localFilter, selectedCategories],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
@@ -217,19 +295,11 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
   const handleFeatureChange = (value: string) => {
     if (value === feature) return;
     setFeature(value);
-    setFilter([]);
+    setLocalFilter([]);
   };
 
   return (
     <div className="flex flex-col gap-2 p-2 h-full">
-      {/* <SearchableSelect
-        className="w-full max-w-sm"
-        label="Feature"
-        placeholder="Select a feature..."
-        value={feature}
-        onChange={handleFeatureChange}
-        options={getFeatureOptions()}
-      /> */}
       <FeatureSelect
         feature={feature}
         handleFeatureChange={handleFeatureChange}
@@ -240,14 +310,23 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
           className="w-full max-w-sm"
           label="Categories to include"
           placeholder="All"
-          value={filter}
-          onChange={(value) => setFilter(value)}
+          value={localFilter}
+          onChange={(value) => setLocalFilter(value)}
           options={filterOptions}
           selectMultiple
         />
       )}
 
-      <div ref={containerRef} className="flex-1 min-h-0">
+      <div ref={containerRef} className="relative flex-1 min-h-0">
+        {selectedCategories.length > 0 && (
+          <button
+            type="button"
+            className="absolute right-2 top-2 z-10 rounded bg-gray-100/70 px-2 py-1 text-xs text-slate-600 backdrop-blur transition hover:border-slate-400 hover:text-slate-800"
+            onClick={() => setSelectedCategories([])}
+          >
+            Clear selection
+          </button>
+        )}
         <svg ref={svgRef} className="w-full h-full"></svg>
       </div>
     </div>

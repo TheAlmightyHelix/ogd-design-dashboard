@@ -16,7 +16,10 @@ export const applyFilters = (
     return Object.entries(filters).every(([featureName, filter]) => {
       const value = (row as Record<string, any>)[featureName];
 
-      if (filter.filterType === 'categorical') {
+      if (
+        filter.filterType === 'categorical' &&
+        (filter.selectedCategories?.length ?? 0) > 0
+      ) {
         return filter.selectedCategories?.includes(value.toString()) ?? true;
       } else if (filter.filterType === 'numeric') {
         const numValue = Number(value);
