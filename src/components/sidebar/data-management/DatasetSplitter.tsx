@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import useDataStore from '../../../store/useDataStore';
 import Dialog from '../../layout/Dialog';
 import Input from '../../layout/Input';
-import Select from '../../layout/select/Select';
+import FeatureSelect from '../../layout/select/FeatureSelect';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 
@@ -41,7 +41,7 @@ const DatasetSplitter = ({
     if (!featureToSplitBy) return {};
 
     const columnType = dataset.columnTypes[featureToSplitBy];
-    if (columnType !== 'Categorical') return {};
+    if (columnType !== 'Categorical' && columnType !== 'Ordinal') return {};
 
     // Extract unique categories for the selected feature
     const uniqueCategories = Array.from(
@@ -79,7 +79,8 @@ const DatasetSplitter = ({
   };
 
   const isCategoricalFeature = () => {
-    return dataset.columnTypes[featureToSplitBy] === 'Categorical';
+    const columnType = dataset.columnTypes[featureToSplitBy];
+    return columnType === 'Categorical' || columnType === 'Ordinal';
   };
 
   const splitDataset = () => {
@@ -202,11 +203,10 @@ const DatasetSplitter = ({
     >
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <Select
-            label="Split by feature"
-            value={featureToSplitBy}
-            onChange={handleFeatureChange}
-            options={getFeatureOptions()}
+          <FeatureSelect
+            feature={featureToSplitBy}
+            handleFeatureChange={handleFeatureChange}
+            featureOptions={getFeatureOptions()}
           />
           {isNumericalFeature() && featureToSplitBy && (
             <div className="text-sm text-gray-700">
