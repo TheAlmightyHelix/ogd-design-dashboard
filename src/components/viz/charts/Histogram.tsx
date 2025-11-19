@@ -7,14 +7,12 @@ import React, {
 } from 'react';
 import * as d3 from 'd3';
 import Select from '../../layout/select/Select';
-import SearchableSelect from '../../layout/select/SearchableSelect';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
-import { Minus, Plus } from 'lucide-react';
 import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
-import { applyFilters } from '../../../utils/filterUtils';
+import { applyFilters, rangesEqual } from '../../../utils/filterUtils';
 
 interface HistogramProps {
   dataset: GameData;
@@ -78,20 +76,6 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
     storeRangesRef.current = [];
     return [];
   }, [datasetRecord?.filters, feature]);
-
-  // Helper to compare ranges arrays
-  const rangesEqual = (
-    a: Array<{ min: number; max: number }>,
-    b: Array<{ min: number; max: number }>,
-  ) => {
-    if (a.length !== b.length) return false;
-    const sortedA = [...a].sort((x, y) => x.min - y.min || x.max - y.max);
-    const sortedB = [...b].sort((x, y) => x.min - y.min || x.max - y.max);
-    return sortedA.every(
-      (range, i) =>
-        range.min === sortedB[i].min && range.max === sortedB[i].max,
-    );
-  };
 
   // Sync selectedBins with global store when it changes externally
   useEffect(() => {
@@ -243,16 +227,10 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .attr('rx', 1)
         .style('cursor', 'pointer')
         .on('mouseover', function () {
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .style('opacity', 0.8);
+          d3.select(this).transition().duration(200).style('opacity', 0.8);
         })
         .on('mouseout', function () {
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .style('opacity', 1);
+          d3.select(this).transition().duration(200).style('opacity', 1);
         })
         .on('click', (_, d) => {
           const binMin = d.x0 ?? -Infinity;

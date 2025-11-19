@@ -91,3 +91,21 @@ export const arraysEqual = (a: string[], b: string[]) => {
   const sortedB = [...b].sort();
   return sortedA.every((val, i) => val === sortedB[i]);
 };
+
+/**
+ * Compare two ranges arrays
+ * @param a - First ranges array
+ * @param b - Second ranges array
+ * @returns True if ranges arrays are equal
+ */
+export const rangesEqual = (
+  a: Array<{ min: number; max: number }>,
+  b: Array<{ min: number; max: number }>,
+) => {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort((x, y) => x.min - y.min || x.max - y.max);
+  const sortedB = [...b].sort((x, y) => x.min - y.min || x.max - y.max);
+  return sortedA.every(
+    (range, i) => range.min === sortedB[i].min && range.max === sortedB[i].max,
+  );
+};
