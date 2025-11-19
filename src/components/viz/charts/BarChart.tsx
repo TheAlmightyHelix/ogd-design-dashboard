@@ -62,22 +62,74 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
     setSelectedCategories([]);
   }, [feature]);
 
-  const prevSelectedCategoriesRef = useRef<string[]>([]);
+  const lastStoreValueRef = useRef<string>('');
+  const isUpdatingStoreRef = useRef(false);
 
+  // Helper to compare arrays
+  const arraysEqual = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+    return sortedA.every((val, i) => val === sortedB[i]);
+  };
+
+  // Get current store value for the feature
+  const storeCategories = useMemo(() => {
+    if (!feature) return [];
+    const storeFilter = datasetRecord?.filters?.[feature];
+    return storeFilter?.filterType === 'categorical'
+      ? (storeFilter.selectedCategories ?? [])
+      : [];
+  }, [datasetRecord?.filters, feature]);
+
+  // Sync selectedCategories with global store when it changes externally
   useEffect(() => {
-    const prevSelectedCategories = prevSelectedCategoriesRef.current;
-    // console.log('Selected categories:', selectedCategories);
-    if (selectedCategories.length > 0) {
-      addFilter(dataset.id, feature, {
-        filterType: 'categorical',
-        selectedCategories,
-      });
+    if (!feature) {
+      setSelectedCategories([]);
+      lastStoreValueRef.current = '';
+      return;
     }
-    if (prevSelectedCategories.length > 0 && selectedCategories.length === 0) {
-      removeFilter(dataset.id, feature);
+
+    const storeValueKey = [...storeCategories].sort().join(',');
+    // Only update if store value changed externally (not from our own update)
+    if (
+      !isUpdatingStoreRef.current &&
+      storeValueKey !== lastStoreValueRef.current
+    ) {
+      if (!arraysEqual(selectedCategories, storeCategories)) {
+        setSelectedCategories(storeCategories);
+      }
+      lastStoreValueRef.current = storeValueKey;
     }
-    prevSelectedCategoriesRef.current = selectedCategories;
-  }, [addFilter, dataset.id, feature, removeFilter, selectedCategories]);
+    isUpdatingStoreRef.current = false;
+  }, [storeCategories, feature, selectedCategories]);
+
+  // Update global store when selectedCategories changes (from bar clicks)
+  useEffect(() => {
+    if (!feature) return;
+
+    // Only update store if local state differs from store
+    if (!arraysEqual(selectedCategories, storeCategories)) {
+      isUpdatingStoreRef.current = true;
+      if (selectedCategories.length > 0) {
+        addFilter(dataset.id, feature, {
+          filterType: 'categorical',
+          selectedCategories,
+        });
+        lastStoreValueRef.current = [...selectedCategories].sort().join(',');
+      } else {
+        removeFilter(dataset.id, feature);
+        lastStoreValueRef.current = '';
+      }
+    }
+  }, [
+    addFilter,
+    dataset.id,
+    feature,
+    removeFilter,
+    selectedCategories,
+    storeCategories,
+  ]);
 
   const renderChart = useCallback(
     (
