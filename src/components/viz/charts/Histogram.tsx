@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+} from 'react';
 import * as d3 from 'd3';
 import Select from '../../layout/select/Select';
 import SearchableSelect from '../../layout/select/SearchableSelect';
@@ -8,6 +14,7 @@ import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
+import { applyFilters } from '../../../utils/filterUtils';
 
 interface HistogramProps {
   dataset: GameData;
@@ -25,17 +32,127 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
     min: number;
     max: number;
   }>(chartId, 'rangeFilter', { min: -Infinity, max: Infinity });
-  const { getFilteredDataset } = useDataStore();
+  const { getFilteredDataset, addFilter, removeFilter } = useDataStore();
+  const datasetRecord = useDataStore(
+    useCallback((state) => state.datasets[dataset.id], [dataset.id]),
+  );
+  const [selectedBins, setSelectedBins] = useState<
+    Array<{ min: number; max: number }>
+  >([]);
 
-  // Get filtered dataset from centralized store
-  const filteredDataset = getFilteredDataset(dataset.id);
-  const data = filteredDataset?.data || [];
+  // Get filtered dataset excluding current feature's filter
+  const filtersExcludingFeature = useMemo(() => {
+    if (!datasetRecord?.filters) return undefined;
+    const { [feature]: _ignored, ...rest } = datasetRecord.filters;
+    return Object.keys(rest).length > 0 ? rest : undefined;
+  }, [datasetRecord?.filters, feature]);
+
+  const data = useMemo(() => {
+    if (!datasetRecord?.data) return [];
+    if (!filtersExcludingFeature) {
+      return datasetRecord.data;
+    }
+    const filteredData = applyFilters(
+      datasetRecord.data,
+      filtersExcludingFeature,
+    );
+    return Object.assign(filteredData, {
+      columns: datasetRecord.data.columns,
+    }) as typeof datasetRecord.data;
+  }, [datasetRecord?.data, filtersExcludingFeature]);
+
+  // Refs for tracking and preventing loops
+  const lastStoreValueRef = useRef<string>('');
+  const isUpdatingStoreRef = useRef(false);
+  const prevSelectedBinsRef = useRef<Array<{ min: number; max: number }>>([]);
+  const storeRangesRef = useRef<Array<{ min: number; max: number }>>([]);
+
+  // Get current store value for the feature
+  const storeRanges = useMemo(() => {
+    if (!feature) return [];
+    const storeFilter = datasetRecord?.filters?.[feature];
+    if (storeFilter?.filterType === 'numeric' && storeFilter.ranges) {
+      storeRangesRef.current = storeFilter.ranges;
+      return storeFilter.ranges;
+    }
+    storeRangesRef.current = [];
+    return [];
+  }, [datasetRecord?.filters, feature]);
+
+  // Helper to compare ranges arrays
+  const rangesEqual = (
+    a: Array<{ min: number; max: number }>,
+    b: Array<{ min: number; max: number }>,
+  ) => {
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort((x, y) => x.min - y.min || x.max - y.max);
+    const sortedB = [...b].sort((x, y) => x.min - y.min || x.max - y.max);
+    return sortedA.every(
+      (range, i) =>
+        range.min === sortedB[i].min && range.max === sortedB[i].max,
+    );
+  };
+
+  // Sync selectedBins with global store when it changes externally
+  useEffect(() => {
+    if (!feature) {
+      setSelectedBins([]);
+      lastStoreValueRef.current = '';
+      prevSelectedBinsRef.current = [];
+      return;
+    }
+
+    const storeValueKey = storeRanges
+      .map((r) => `${r.min}-${r.max}`)
+      .sort()
+      .join(',');
+    // Only update if store value changed externally (not from our own update)
+    if (
+      !isUpdatingStoreRef.current &&
+      storeValueKey !== lastStoreValueRef.current
+    ) {
+      setSelectedBins(storeRanges);
+      lastStoreValueRef.current = storeValueKey;
+      prevSelectedBinsRef.current = storeRanges;
+    }
+    isUpdatingStoreRef.current = false;
+  }, [storeRanges, feature]);
+
+  // Update global store when selectedBins changes (from bin clicks)
+  useEffect(() => {
+    if (!feature) return;
+
+    const prevSelected = prevSelectedBinsRef.current;
+    const hasChanged = !rangesEqual(selectedBins, prevSelected);
+
+    if (hasChanged) {
+      const currentStoreRanges = storeRangesRef.current;
+      if (!rangesEqual(selectedBins, currentStoreRanges)) {
+        isUpdatingStoreRef.current = true;
+        if (selectedBins.length > 0) {
+          addFilter(dataset.id, feature, {
+            filterType: 'numeric',
+            ranges: selectedBins,
+          });
+          lastStoreValueRef.current = selectedBins
+            .map((r) => `${r.min}-${r.max}`)
+            .sort()
+            .join(',');
+        } else {
+          removeFilter(dataset.id, feature);
+          lastStoreValueRef.current = '';
+        }
+      }
+      prevSelectedBinsRef.current = selectedBins;
+    }
+  }, [addFilter, dataset.id, feature, removeFilter, selectedBins]);
 
   // prevent invalid feature selection
   useEffect(() => {
     if (feature && !getFeatureOptions()[feature]) {
       setFeature('');
     }
+    setSelectedBins([]);
   }, [feature]);
 
   const renderChart = useCallback(
@@ -87,6 +204,15 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
 
       const bins = histogram(values);
 
+      // Helper to check if a bin is selected
+      const isBinSelected = (bin: d3.Bin<number, number>) => {
+        const binMin = bin.x0 ?? -Infinity;
+        const binMax = bin.x1 ?? Infinity;
+        return selectedBins.some(
+          (range) => range.min === binMin && range.max === binMax,
+        );
+      };
+
       // X scale (linear) - use bin boundaries for proper alignment
       const xScale = d3.scaleLinear().domain(dataExtent).range([0, width]);
 
@@ -109,8 +235,39 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
           Math.max(0, xScale(d.x1 || 0) - xScale(d.x0 || 0) - 1),
         )
         .attr('height', (d) => height - yScale(d.length))
-        .attr('fill', '#ff8e38')
-        .attr('rx', 1);
+        .attr('fill', (d) => {
+          const selected = isBinSelected(d);
+          const hasSelection = selectedBins.length > 0;
+          return hasSelection && !selected ? '#d1d5db' : '#ff8e38';
+        })
+        .attr('rx', 1)
+        .style('cursor', 'pointer')
+        .on('mouseover', function () {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .style('opacity', 0.8);
+        })
+        .on('mouseout', function () {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .style('opacity', 1);
+        })
+        .on('click', (_, d) => {
+          const binMin = d.x0 ?? -Infinity;
+          const binMax = d.x1 ?? Infinity;
+          const binRange = { min: binMin, max: binMax };
+
+          setSelectedBins((current) => {
+            const isSelected = current.some(
+              (r) => r.min === binMin && r.max === binMax,
+            );
+            return isSelected
+              ? current.filter((r) => !(r.min === binMin && r.max === binMax))
+              : [...current, binRange];
+          });
+        });
 
       // Add bar labels (only if there's enough space and not too many bins)
       if (bins.length <= 15) {
@@ -218,7 +375,7 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .attr('fill', '#6b7280')
         .text(`Mode: ${mode.toFixed(2)}`);
     },
-    [feature, binCount, data, rangeFilter],
+    [feature, binCount, data, rangeFilter, selectedBins],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
@@ -294,7 +451,16 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         />
       </div>
 
-      <div ref={containerRef} className="flex-1 min-h-0">
+      <div ref={containerRef} className="relative flex-1 min-h-0">
+        {selectedBins.length > 0 && (
+          <button
+            type="button"
+            className="absolute right-2 top-2 z-10 rounded bg-gray-100/70 px-2 py-1 text-xs text-slate-600 backdrop-blur transition hover:border-slate-400 hover:text-slate-800"
+            onClick={() => setSelectedBins([])}
+          >
+            Clear selection
+          </button>
+        )}
         <svg ref={svgRef} className="w-full h-full"></svg>
       </div>
     </div>

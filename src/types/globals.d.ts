@@ -33,10 +33,10 @@ declare global {
     filterType: 'categorical' | 'numeric';
     // For categorical filters
     selectedCategories?: string[];
-    // For numeric filters
-    range?: {
-      min?: number;
-      max?: number;
-    };
+    // For numeric filters - multiple ranges (e.g., selected bins in histogram)
+    ranges?: Array<{
+      min: number;
+      max: number;
+    }>;
   }
 }

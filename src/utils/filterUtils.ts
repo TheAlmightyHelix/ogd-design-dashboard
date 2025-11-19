@@ -25,9 +25,14 @@ export const applyFilters = (
         const numValue = Number(value);
         if (isNaN(numValue)) return false;
 
-        const min = filter.range?.min ?? -Infinity;
-        const max = filter.range?.max ?? Infinity;
-        return numValue >= min && numValue <= max;
+        // Support multiple ranges (for histogram bin selection)
+        if (filter.ranges && filter.ranges.length > 0) {
+          return filter.ranges.some(
+            (range) => numValue >= range.min && numValue <= range.max,
+          );
+        }
+
+        return true;
       }
 
       return true;
