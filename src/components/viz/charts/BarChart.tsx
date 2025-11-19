@@ -11,7 +11,7 @@ import SearchableSelect from '../../layout/select/SearchableSelect';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
-import { applyFilters } from '../../../utils/filterUtils';
+import { applyFilters, arraysEqual } from '../../../utils/filterUtils';
 
 interface BarChartProps {
   dataset: GameData;
@@ -64,22 +64,19 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
 
   const lastStoreValueRef = useRef<string>('');
   const isUpdatingStoreRef = useRef(false);
-
-  // Helper to compare arrays
-  const arraysEqual = (a: string[], b: string[]) => {
-    if (a.length !== b.length) return false;
-    const sortedA = [...a].sort();
-    const sortedB = [...b].sort();
-    return sortedA.every((val, i) => val === sortedB[i]);
-  };
+  const prevSelectedCategoriesRef = useRef<string[]>([]);
+  const storeCategoriesRef = useRef<string[]>([]);
 
   // Get current store value for the feature
   const storeCategories = useMemo(() => {
     if (!feature) return [];
     const storeFilter = datasetRecord?.filters?.[feature];
-    return storeFilter?.filterType === 'categorical'
-      ? (storeFilter.selectedCategories ?? [])
-      : [];
+    const categories =
+      storeFilter?.filterType === 'categorical'
+        ? (storeFilter.selectedCategories ?? [])
+        : [];
+    storeCategoriesRef.current = categories;
+    return categories;
   }, [datasetRecord?.filters, feature]);
 
   // Sync selectedCategories with global store when it changes externally
@@ -87,6 +84,7 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
     if (!feature) {
       setSelectedCategories([]);
       lastStoreValueRef.current = '';
+      prevSelectedCategoriesRef.current = [];
       return;
     }
 
@@ -96,40 +94,43 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
       !isUpdatingStoreRef.current &&
       storeValueKey !== lastStoreValueRef.current
     ) {
-      if (!arraysEqual(selectedCategories, storeCategories)) {
-        setSelectedCategories(storeCategories);
-      }
+      setSelectedCategories(storeCategories);
       lastStoreValueRef.current = storeValueKey;
+      // Update ref so second effect knows this was a store sync, not user change
+      prevSelectedCategoriesRef.current = storeCategories;
     }
     isUpdatingStoreRef.current = false;
-  }, [storeCategories, feature, selectedCategories]);
+  }, [storeCategories, feature]);
 
   // Update global store when selectedCategories changes (from bar clicks)
   useEffect(() => {
     if (!feature) return;
 
-    // Only update store if local state differs from store
-    if (!arraysEqual(selectedCategories, storeCategories)) {
-      isUpdatingStoreRef.current = true;
-      if (selectedCategories.length > 0) {
-        addFilter(dataset.id, feature, {
-          filterType: 'categorical',
-          selectedCategories,
-        });
-        lastStoreValueRef.current = [...selectedCategories].sort().join(',');
-      } else {
-        removeFilter(dataset.id, feature);
-        lastStoreValueRef.current = '';
+    // Only update if selectedCategories actually changed (not from store sync)
+    const prevSelected = prevSelectedCategoriesRef.current;
+    const hasChanged = !arraysEqual(selectedCategories, prevSelected);
+
+    if (hasChanged) {
+      // Check if this change would actually modify the store
+      // Use ref to get latest store value to avoid stale closure
+      const currentStoreCategories = storeCategoriesRef.current;
+      if (!arraysEqual(selectedCategories, currentStoreCategories)) {
+        isUpdatingStoreRef.current = true;
+        if (selectedCategories.length > 0) {
+          addFilter(dataset.id, feature, {
+            filterType: 'categorical',
+            selectedCategories,
+          });
+          lastStoreValueRef.current = [...selectedCategories].sort().join(',');
+        } else {
+          removeFilter(dataset.id, feature);
+          lastStoreValueRef.current = '';
+        }
       }
+      // Always update the ref after processing to prevent re-triggering
+      prevSelectedCategoriesRef.current = selectedCategories;
     }
-  }, [
-    addFilter,
-    dataset.id,
-    feature,
-    removeFilter,
-    selectedCategories,
-    storeCategories,
-  ]);
+  }, [addFilter, dataset.id, feature, removeFilter, selectedCategories]);
 
   const renderChart = useCallback(
     (

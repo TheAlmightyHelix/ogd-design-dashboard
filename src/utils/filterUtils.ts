@@ -73,3 +73,16 @@ export const getFilteredRowCount = (
 ): number => {
   return applyFilters(data, filters).length;
 };
+
+/**
+ * Compare two arrays
+ * @param a - First array
+ * @param b - Second array
+ * @returns True if arrays are equal
+ */
+export const arraysEqual = (a: string[], b: string[]) => {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((val, i) => val === sortedB[i]);
+};
