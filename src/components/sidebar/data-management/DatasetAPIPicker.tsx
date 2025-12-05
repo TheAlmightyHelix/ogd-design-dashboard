@@ -5,8 +5,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import api from '../../../services/apiService';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import useDataStore from '../../../store/useDataStore';
-import { DSVRowArray } from 'd3';
 import { normalizeApiResponse } from '../../../adapters/apiAdapter';
+import { X } from 'lucide-react';
 
 const DatasetAPIPicker = () => {
   const { addDataset } = useDataStore();
@@ -108,12 +108,18 @@ const DatasetAPIPicker = () => {
       <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
         <div className="flex flex-col gap-8 h-120">
           <div className="flex flex-col gap-4">
-            <div>
-              <h1 className="text-2xl font-bold">Browse Datasets</h1>
-              <p className=" text-gray-500">
-                Lookup datasets from the Open Game Data repository and import
-                them into the dashboard.
-              </p>
+            <div className="flex w-full justify-between items-start">
+              <div>
+                <h1 className="text-xl font-bold">Browse Datasets</h1>
+                <p className="text-sm text-gray-500">
+                  Lookup datasets from the Open Game Data repository and import
+                  them into the dashboard.
+                </p>
+              </div>
+              <X
+                className="w-4 h-4 cursor-pointer"
+                onClick={() => setIsOpen(false)}
+              />
             </div>
             {isLoading && <p>Loading...</p>}
             {error && <p>Error: {error.message}</p>}
@@ -152,7 +158,7 @@ const DatasetAPIPicker = () => {
 
           {datasetMetadata && (
             <div className="h-full flex flex-col gap-2">
-              <h2 className="text-xl font-bold">Available Datasets</h2>
+              <h2 className="font-semibold">Available Datasets</h2>
               <div className="grid grid-cols-3 gap-4 h-full">
                 {['population', 'player', 'session'].map((level) => {
                   const isImporting = importingLevels.has(
@@ -164,10 +170,8 @@ const DatasetAPIPicker = () => {
                       className="h-full border border-gray-300 rounded-md p-4 w-full flex flex-col items-start justify-between hover:bg-gray-100 transition-colors"
                     >
                       <div>
-                        <h3 className="text-lg font-semibold">
-                          {level.toUpperCase()}
-                        </h3>
-                        <p className=" text-gray-500">
+                        <h3 className="font-semibold">{level.toUpperCase()}</h3>
+                        <p className="text-sm text-gray-500">
                           {level === 'population' &&
                             'Population level data contains features aggregated across all events.'}
                           {level === 'player' &&
