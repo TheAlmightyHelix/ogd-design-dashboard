@@ -60,7 +60,7 @@ const DatasetTSVPicker = () => {
   };
 
   return (
-    <div className="flex flex-col gap-2 max-w-sm">
+    <div className="flex flex-col gap-2 w-full">
       <label
         htmlFor="ogd-tsv-file-upload"
         onClick={(e) => {
@@ -68,10 +68,10 @@ const DatasetTSVPicker = () => {
           e.preventDefault();
           fileInputRef.current?.click();
         }}
-        className="inline-flex items-center justify-center px-4 py-2 bg-blue-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm"
+        className="inline-flex items-center justify-center px-4 py-2 bg-gray-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-gray-500 transition-colors text-sm"
       >
         <Upload className="w-4 h-4 mr-2" />
-        Select Open Game Data TSV files
+        Upload Open Game Data TSV files
       </label>
       <input
         ref={fileInputRef}

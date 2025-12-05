@@ -3,6 +3,7 @@ import { useState } from 'react';
 import DatasetSplitter from './DatasetSplitter';
 import DatasetTSVPicker from './DatasetTSVPicker';
 import DatasetItem from './DatasetItem';
+import DatasetAPIPicker from './DatasetAPIPicker';
 
 const DataSourceList = () => {
   const { datasets, removeDataset, hasHydrated } = useDataStore();
@@ -10,7 +11,8 @@ const DataSourceList = () => {
 
   return (
     <div className="flex flex-col gap-4 overflow-y-auto">
-      <div className="my-2">
+      <div className="my-2 flex gap-2 justify-between">
+        <DatasetAPIPicker />
         <DatasetTSVPicker />
       </div>
       {!hasHydrated && <div>Loading datasets...</div>}
