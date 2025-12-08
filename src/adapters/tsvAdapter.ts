@@ -10,7 +10,6 @@ export async function parseTSV(file: File) {
 
   const url = URL.createObjectURL(file);
   const extractedData = await d3.tsv(url, d3.autoType);
-  console.log(extractedData);
 
   const columnTypes = getColumnTypes(extractedData);
 

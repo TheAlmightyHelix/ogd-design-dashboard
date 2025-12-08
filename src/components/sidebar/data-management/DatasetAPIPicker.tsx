@@ -5,11 +5,14 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import api from '../../../services/apiService';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import useDataStore from '../../../store/useDataStore';
-import { normalizeApiResponse } from '../../../adapters/apiAdapter';
+import {
+  generateAPIDatasetID,
+  normalizeApiResponse,
+} from '../../../adapters/apiAdapter';
 import { X } from 'lucide-react';
 
 const DatasetAPIPicker = () => {
-  const { addDataset } = useDataStore();
+  const { addDataset, hasDataset } = useDataStore();
   const [isOpen, setIsOpen] = useState(false);
   const {
     data: games,
@@ -72,7 +75,6 @@ const DatasetAPIPicker = () => {
     }) =>
       api.getDataset(game, dataset.split('/')[1], dataset.split('/')[0], level),
     onSuccess: (responseBody, variables) => {
-      console.log(responseBody);
       if (responseBody) {
         addDataset(
           normalizeApiResponse(
@@ -134,10 +136,21 @@ const DatasetAPIPicker = () => {
           onClick={() =>
             handleImportDataset(level as 'population' | 'player' | 'session')
           }
-          disabled={isImporting || !selectedGame || !selectedDataset}
+          disabled={
+            isImporting ||
+            hasDataset(
+              generateAPIDatasetID(selectedGame, selectedDataset, level),
+            )
+          }
           className="w-full bg-blue-400 text-white px-4 py-2 rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isImporting ? 'Importing...' : 'Add to Dashboard'}
+          {isImporting
+            ? 'Importing...'
+            : hasDataset(
+                  generateAPIDatasetID(selectedGame, selectedDataset, level),
+                )
+              ? 'Imported'
+              : 'Add to Dashboard'}
         </button>
       </div>
     );

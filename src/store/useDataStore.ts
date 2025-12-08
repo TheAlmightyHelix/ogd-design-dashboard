@@ -12,6 +12,7 @@ interface DataStore {
   removeDataset: (id: string) => void;
   getDatasetByID: (id: string) => GameData | undefined;
   getFilteredDataset: (id: string) => GameData | undefined;
+  hasDataset: (id: string) => boolean;
   lookupDatasets: (
     game?: string,
     startDate?: string,
@@ -139,6 +140,7 @@ const useDataStore = create<DataStore>()(
           },
         };
       },
+      hasDataset: (id: string) => !!get().datasets[id],
       lookupDatasets: (
         game?: string,
         startDate?: string,

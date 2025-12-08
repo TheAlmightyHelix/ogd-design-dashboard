@@ -14,7 +14,7 @@ export function normalizeApiResponse(
   }) as DSVParsedArray<object>;
 
   const dataset: GameData = {
-    id: `${selectedGame}_${selectedDataset}_${selectedDataset}_api_${level}`,
+    id: generateAPIDatasetID(selectedGame, selectedDataset, level),
     game: selectedGame,
     featureLevel: level,
     startDate: selectedDataset,
@@ -27,4 +27,12 @@ export function normalizeApiResponse(
   };
 
   return dataset;
+}
+
+export function generateAPIDatasetID(
+  game: string,
+  dataset: string,
+  level: 'population' | 'player' | 'session',
+) {
+  return `${game}_${dataset}_${dataset}_api_${level}`;
 }
