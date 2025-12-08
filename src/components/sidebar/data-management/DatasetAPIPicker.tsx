@@ -27,26 +27,38 @@ const DatasetAPIPicker = () => {
   } = useQuery({
     queryKey: ['datasets', selectedGame as string],
     queryFn: () => api.getDatasets(selectedGame),
+    select: (data) =>
+      data.val.datasets.reduce(
+        (acc, dataset) => {
+          if (
+            dataset.sessions_file === null &&
+            dataset.players_file === null &&
+            dataset.population_file === null
+          ) {
+            return acc;
+          }
+          acc[`${dataset.year}/${dataset.month}`] = [];
+          if (dataset.sessions_file !== null) {
+            acc[`${dataset.year}/${dataset.month}`].push('session');
+          }
+          if (dataset.players_file !== null) {
+            acc[`${dataset.year}/${dataset.month}`].push('player');
+          }
+          if (dataset.population_file !== null) {
+            acc[`${dataset.year}/${dataset.month}`].push('population');
+          }
+
+          return acc;
+        },
+        {} as Record<string, ('population' | 'player' | 'session')[]>,
+      ),
     enabled: !!selectedGame,
   });
+
   const [selectedDataset, setSelectedDataset] = useState<string>('');
   const [importingLevels, setImportingLevels] = useState<
     Set<'population' | 'player' | 'session'>
   >(new Set());
-  const {
-    data: datasetMetadata,
-    isLoading: isLoadingDatasetMetadata,
-    error: errorDatasetMetadata,
-  } = useQuery({
-    queryKey: ['datasetMetadata', selectedGame, selectedDataset as string],
-    queryFn: () =>
-      api.getDatasetMetadata(
-        selectedGame,
-        selectedDataset.split('/')[1],
-        selectedDataset.split('/')[0],
-      ),
-    enabled: !!selectedDataset && !!selectedGame,
-  });
 
   const importDatasetMutation = useMutation({
     mutationFn: ({
@@ -96,6 +108,41 @@ const DatasetAPIPicker = () => {
     setSelectedDataset('');
   }, [selectedGame]);
 
+  const DatasetLevelCard = ({
+    level,
+  }: {
+    level: 'population' | 'player' | 'session';
+  }) => {
+    const isImporting = importingLevels.has(level);
+    return (
+      <div
+        key={level}
+        className="h-full border border-gray-300 rounded-md p-4 w-full flex flex-col items-start justify-between hover:bg-gray-100 transition-colors"
+      >
+        <div>
+          <h3 className="font-semibold">{level.toUpperCase()}</h3>
+          <p className="text-sm text-gray-500">
+            {level === 'population' &&
+              'Population level data contains features aggregated across all events.'}
+            {level === 'player' &&
+              'Player level data contains features for each player.'}
+            {level === 'session' &&
+              'Session level data contains features for each session.'}
+          </p>
+        </div>
+        <button
+          onClick={() =>
+            handleImportDataset(level as 'population' | 'player' | 'session')
+          }
+          disabled={isImporting || !selectedGame || !selectedDataset}
+          className="w-full bg-blue-400 text-white px-4 py-2 rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isImporting ? 'Importing...' : 'Add to Dashboard'}
+        </button>
+      </div>
+    );
+  };
+
   return (
     <>
       <button
@@ -141,10 +188,9 @@ const DatasetAPIPicker = () => {
               {datasets && (
                 <SearchableSelect
                   label="Month"
-                  options={datasets.val.datasets.reduce(
-                    (acc, dataset) => {
-                      acc[`${dataset.year}/${dataset.month}`] =
-                        `${dataset.year}/${dataset.month}`;
+                  options={Object.keys(datasets).reduce(
+                    (acc, key) => {
+                      acc[key] = key;
                       return acc;
                     },
                     {} as Record<string, string>,
@@ -156,45 +202,12 @@ const DatasetAPIPicker = () => {
             </div>
           </div>
 
-          {datasetMetadata && (
+          {datasets && selectedDataset && (
             <div className="h-full flex flex-col gap-2">
               <h2 className="font-semibold">Available Datasets</h2>
               <div className="grid grid-cols-3 gap-4 h-full">
-                {['population', 'player', 'session'].map((level) => {
-                  const isImporting = importingLevels.has(
-                    level as 'population' | 'player' | 'session',
-                  );
-                  return (
-                    <div
-                      key={level}
-                      className="h-full border border-gray-300 rounded-md p-4 w-full flex flex-col items-start justify-between hover:bg-gray-100 transition-colors"
-                    >
-                      <div>
-                        <h3 className="font-semibold">{level.toUpperCase()}</h3>
-                        <p className="text-sm text-gray-500">
-                          {level === 'population' &&
-                            'Population level data contains features aggregated across all events.'}
-                          {level === 'player' &&
-                            'Player level data contains features for each player.'}
-                          {level === 'session' &&
-                            'Session level data contains features for each session.'}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() =>
-                          handleImportDataset(
-                            level as 'population' | 'player' | 'session',
-                          )
-                        }
-                        disabled={
-                          isImporting || !selectedGame || !selectedDataset
-                        }
-                        className="w-full bg-blue-400 text-white px-4 py-2 rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isImporting ? 'Importing...' : 'Add to Dashboard'}
-                      </button>
-                    </div>
-                  );
+                {datasets[selectedDataset].map((level) => {
+                  return <DatasetLevelCard key={level} level={level} />;
                 })}
               </div>
             </div>

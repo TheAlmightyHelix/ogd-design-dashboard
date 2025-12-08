@@ -20,6 +20,9 @@ interface DatasetsResponse {
       year: number;
       month: number;
       total_sessions: number;
+      sessions_file: string | null;
+      players_file: string | null;
+      population_file: string | null;
     }[];
   };
   msg: string;
@@ -69,12 +72,12 @@ const apiService = {
     );
     return response.data as DatasetsResponse;
   },
-  getDatasetMetadata: async (gameId: string, month: string, year: string) => {
-    const response = await axios.get(
-      `${BASE_URL}/games/${gameId}/datasets/${month}/${year}/files`,
-    );
-    return response.data as DatasetMetadataResponse;
-  },
+  // getDatasetMetadata: async (gameId: string, month: string, year: string) => {
+  //   const response = await axios.get(
+  //     `${BASE_URL}/games/${gameId}/datasets/${month}/${year}/files`,
+  //   );
+  //   return response.data as DatasetMetadataResponse;
+  // },
   getDataset: async (
     gameId: string,
     month: string,
