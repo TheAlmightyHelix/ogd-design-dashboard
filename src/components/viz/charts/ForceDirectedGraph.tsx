@@ -4,6 +4,7 @@ import useDataStore from '../../../store/useDataStore';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import { useCallback, useMemo } from 'react';
+import { parseObjectFromString } from './jobGraphUtil';
 
 interface ForceDirectedGraphProps {
   dataset: GameData;
@@ -49,7 +50,7 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
     };
     if (feature && data.length > 0) {
       try {
-        const parsed = JSON.parse((data[0] as any)[feature] as string);
+        const parsed = parseObjectFromString<Graph>((data[0] as any)[feature] as string);
         return {
           nodes: parsed.nodes,
           links: parsed.links,
