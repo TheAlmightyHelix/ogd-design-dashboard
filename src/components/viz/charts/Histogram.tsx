@@ -143,16 +143,13 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
-      // Create histogram generator
-      const dataExtent = d3.extent(values) as [number, number];
-      const histogram = d3
-        .bin()
-        .domain(dataExtent)
-        .thresholds(
-          d3.ticks(d3.min(values) || 0, d3.max(values) || 0, binCount),
-        );
-
+      // Create histogram generator (count-based thresholds so D3 avoids zero-width last bin)
+      const histogram = d3.bin().thresholds(binCount);
       const bins = histogram(values);
+      const xExtent = [
+        bins[0]?.x0 ?? 0,
+        bins[bins.length - 1]?.x1 ?? 0,
+      ] as [number, number];
 
       // Helper to check if a bin is selected
       const isBinSelected = (bin: d3.Bin<number, number>) => {
@@ -164,7 +161,7 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
       };
 
       // X scale (linear) - use bin boundaries for proper alignment
-      const xScale = d3.scaleLinear().domain(dataExtent).range([0, width]);
+      const xScale = d3.scaleLinear().domain(xExtent).range([0, width]);
 
       // Y scale (linear)
       const yScale = d3

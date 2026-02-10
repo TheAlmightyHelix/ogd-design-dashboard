@@ -64,7 +64,6 @@ export const JobGraph: React.FC<JobGraphProps> = ({ dataset, chartId }) => {
 
     const firstRow = data[0] as any;
     const populationSummaryData = firstRow['PopulationSummary'];
-    console.log('populationSummaryData', populationSummaryData);
 
     if (!populationSummaryData) return null;
 
