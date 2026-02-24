@@ -44,8 +44,8 @@ export const CollapsibleChartConfig: React.FC<CollapsibleChartConfigProps> = ({
         </div>
       )}
       <div
-        className={`overflow-hidden transition-[max-height] duration-200 ease-in-out flex flex-col gap-2 ${
-          showConfig ? 'max-h-96' : 'max-h-0'
+        className={`transition-[max-height] duration-200 ease-in-out flex flex-col gap-2 ${
+          !showConfig && 'h-0 overflow-hidden'
         }`}
       >
         {children}
