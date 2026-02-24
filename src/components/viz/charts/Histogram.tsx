@@ -7,6 +7,7 @@ import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 import { applyFilters } from '../../sidebar/data-management/filterUtils';
+import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface HistogramProps {
   dataset: GameData;
@@ -146,10 +147,10 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
       // Create histogram generator (count-based thresholds so D3 avoids zero-width last bin)
       const histogram = d3.bin().thresholds(binCount);
       const bins = histogram(values);
-      const xExtent = [
-        bins[0]?.x0 ?? 0,
-        bins[bins.length - 1]?.x1 ?? 0,
-      ] as [number, number];
+      const xExtent = [bins[0]?.x0 ?? 0, bins[bins.length - 1]?.x1 ?? 0] as [
+        number,
+        number,
+      ];
 
       // Helper to check if a bin is selected
       const isBinSelected = (bin: d3.Bin<number, number>) => {
@@ -314,67 +315,59 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
 
   return (
-    <div className="flex flex-col gap-2 p-2 h-full">
-      <div className="flex gap-2 items-end">
-        {/* <SearchableSelect
-          className="flex-1 max-w-sm"
-          label="Feature"
-          placeholder="Select a feature..."
-          value={feature}
-          onChange={(value) => setFeature(value)}
-          options={getFeatureOptions()}
-          /> */}
+    <div className="flex flex-col px-2 h-full">
+      <CollapsibleChartConfig chartId={chartId} collapsedLabel={feature}>
         <FeatureSelect
           feature={feature}
           handleFeatureChange={(value) => setFeature(value)}
           featureOptions={getFeatureOptions()}
         />
-        <Select
-          className="w-24"
-          label="Bins"
-          helpText="Controls how granularly the data is divided"
-          value={binCount.toString()}
-          onChange={(value) => setBinCount(parseInt(value))}
-          options={Object.fromEntries(
-            ['5', '10', '15', '20', '25', '30'].map((binCount) => [
-              binCount,
-              binCount,
-            ]),
-          )}
-        />
-      </div>
-      <div className="flex gap-2 items-end">
-        <Input
-          label="Min"
-          value={
-            rangeFilter.min === -Infinity || rangeFilter.min == null
-              ? ''
-              : rangeFilter.min.toString()
-          }
-          onChange={(value) =>
-            setRangeFilter({
-              ...rangeFilter,
-              min: value === '' ? -Infinity : parseFloat(value),
-            })
-          }
-          debounce
-        />
-        <Input
-          label="Max"
-          value={
-            rangeFilter.max === Infinity || rangeFilter.max == null
-              ? ''
-              : rangeFilter.max.toString()
-          }
-          onChange={(value) =>
-            setRangeFilter({
-              ...rangeFilter,
-              max: value === '' ? Infinity : parseFloat(value),
-            })
-          }
-          debounce
-        />
-      </div>
+        <div className="flex gap-2">
+          <Select
+            className="w-full"
+            label="Bins"
+            helpText="Controls how granularly the data is divided"
+            value={binCount.toString()}
+            onChange={(value) => setBinCount(parseInt(value))}
+            options={Object.fromEntries(
+              ['5', '10', '15', '20', '25', '30'].map((binCount) => [
+                binCount,
+                binCount,
+              ]),
+            )}
+          />
+          <Input
+            label="Min"
+            value={
+              rangeFilter.min === -Infinity || rangeFilter.min == null
+                ? ''
+                : rangeFilter.min.toString()
+            }
+            onChange={(value) =>
+              setRangeFilter({
+                ...rangeFilter,
+                min: value === '' ? -Infinity : parseFloat(value),
+              })
+            }
+            debounce
+          />
+          <Input
+            label="Max"
+            value={
+              rangeFilter.max === Infinity || rangeFilter.max == null
+                ? ''
+                : rangeFilter.max.toString()
+            }
+            onChange={(value) =>
+              setRangeFilter({
+                ...rangeFilter,
+                max: value === '' ? Infinity : parseFloat(value),
+              })
+            }
+            debounce
+          />
+        </div>
+      </CollapsibleChartConfig>
 
       <div ref={containerRef} className="relative flex-1 min-h-0">
         {selectedBins.length > 0 && (

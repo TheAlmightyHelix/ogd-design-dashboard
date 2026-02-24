@@ -1,3 +1,4 @@
+import { variance } from 'd3';
 import { useEffect, useState } from 'react';
 
 interface InputProps {
@@ -8,6 +9,7 @@ interface InputProps {
   placeholder?: string;
   debounce?: boolean;
   autoFocus?: boolean;
+  variant?: 'default' | 'subtle';
 }
 
 const Input = ({
@@ -18,6 +20,7 @@ const Input = ({
   placeholder,
   debounce = false,
   autoFocus = false,
+  variant = 'default',
 }: InputProps) => {
   const [internalValue, setInternalValue] = useState(value);
 
@@ -39,14 +42,19 @@ const Input = ({
   }, [internalValue, debounce]);
 
   return (
-    <div className={'flex flex-col justify-start items-start ' + className}>
+    <div
+      className={
+        'flex min-w-0 flex-col justify-start items-stretch w-full ' +
+        (className ?? '')
+      }
+    >
       {label && (
         <label className="text-sm text-gray-700" htmlFor={label}>
           {label}
         </label>
       )}
       <input
-        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2 py-1 :bg-gray-700 "
+        className={`min-w-0 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full px-2 py-1 overflow-hidden text-ellipsis ${variant === 'subtle' ? 'border-none focus:ring-0 focus:border-0 focus:outline-none' : 'bg-gray-50 focus:ring-blue-500 focus:border-blue-500 :bg-gray-700'}`}
         type="text"
         id={label}
         value={internalValue}

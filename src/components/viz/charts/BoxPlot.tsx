@@ -1,10 +1,10 @@
 import { useCallback, useEffect } from 'react';
-import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
+import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface BoxPlotProps {
   dataset: GameData;
@@ -219,20 +219,17 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ dataset, chartId }) => {
   };
 
   return (
-    <div className="flex flex-col gap-2 p-2 h-full">
-      {/* <SearchableSelect
-        className="w-full max-w-sm"
-        label="Feature"
-        placeholder="Select a feature..."
-        value={feature}
-        onChange={(value) => setFeature(value)}
-        options={getFeatureOptions()}
-      /> */}
-      <FeatureSelect
-        feature={feature}
-        handleFeatureChange={(value) => setFeature(value)}
-        featureOptions={getFeatureOptions()}
-      />
+    <div className="flex flex-col gap-2 px-2 pb-2 h-full">
+      <CollapsibleChartConfig
+        chartId={chartId}
+        collapsedLabel={feature || 'Box Plot'}
+      >
+        <FeatureSelect
+          feature={feature}
+          handleFeatureChange={(value) => setFeature(value)}
+          featureOptions={getFeatureOptions()}
+        />
+      </CollapsibleChartConfig>
 
       <div ref={containerRef} className="flex-1 min-h-0">
         <svg ref={svgRef} className="w-full h-full"></svg>

@@ -1,24 +1,23 @@
-import { useEffect, useState } from 'react';
 import useLayoutStore from '../store/useLayoutStore';
 
 const useChartOption = <T,>(chartId: string, key: string, initial: T): [T, (v: T) => void] => {
-  const getOption = useLayoutStore((state) => state.getChartOption);
-  const setOption = useLayoutStore((state) => state.setChartOption);
-  const [value, setValue] = useState<T>(() => {
-    const val = getOption(chartId, key);
-    return val !== undefined ? (val as T) : initial;
+  // Subscribe to the actual stored value so external updates (e.g. from GridLayout
+  // toggle) trigger re-renders. Selecting getChartOption/setChartOption would
+  // never re-render because those are stable function references.
+  const storedValue = useLayoutStore((state) => {
+    const { currentLayout, layouts } = state;
+    if (!currentLayout) return undefined;
+    const val = layouts[currentLayout]?.charts[chartId]?.options?.[key];
+    return val !== undefined ? (val as T) : undefined;
   });
 
-  useEffect(() => {
-    const stored = getOption(chartId, key);
-    if (stored !== undefined) {
-      setValue(stored as T);
-    }
-  }, [chartId]);
+  const setOption = useLayoutStore((state) => state.setChartOption);
 
-  useEffect(() => {
-    setOption(chartId, key, value);
-  }, [value]);
+  const value = storedValue !== undefined ? storedValue : initial;
+
+  const setValue = (v: T) => {
+    setOption(chartId, key, v);
+  };
 
   return [value, setValue];
 };

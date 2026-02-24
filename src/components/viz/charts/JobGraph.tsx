@@ -5,6 +5,7 @@ import Select from '../../layout/select/Select';
 import { getNodes, getEdges, EdgeMode } from './jobGraphUtil';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
+import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface JobGraphProps {
   dataset: GameData;
@@ -384,15 +385,22 @@ export const JobGraph: React.FC<JobGraphProps> = ({ dataset, chartId }) => {
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
 
   return (
-    <div className="flex flex-col gap-2 p-2 h-full">
-      <Select
-        className="w-full max-w-sm"
-        label="Link Mode"
-        helpText="Controls how links are drawn between nodes"
-        value={currentEdgeMode}
-        onChange={(value) => setEdgeMode(value as keyof typeof EdgeMode)}
-        options={availableEdgeModes}
-      />
+    <div className="flex flex-col gap-2 px-2 pb-2 h-full">
+      <CollapsibleChartConfig
+        chartId={chartId}
+        collapsedLabel={
+          availableEdgeModes[currentEdgeMode] || currentEdgeMode || 'Job Graph'
+        }
+      >
+        <Select
+          className="w-full max-w-sm"
+          label="Link Mode"
+          helpText="Controls how links are drawn between nodes"
+          value={currentEdgeMode}
+          onChange={(value) => setEdgeMode(value as keyof typeof EdgeMode)}
+          options={availableEdgeModes}
+        />
+      </CollapsibleChartConfig>
       <div ref={containerRef} className="flex-1 min-h-0 relative">
         <svg ref={svgRef} className="w-full h-full"></svg>
         {/* Legend */}

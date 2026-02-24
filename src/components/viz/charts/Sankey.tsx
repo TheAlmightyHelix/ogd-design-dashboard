@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import * as d3 from 'd3';
 import { sankey, sankeyLinkHorizontal } from 'd3-sankey';
@@ -11,6 +11,7 @@ import {
 } from './jobGraphUtil';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
+import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface SankeyProps {
   dataset: GameData;
@@ -217,16 +218,21 @@ export const Sankey: React.FC<SankeyProps> = ({ dataset, chartId }) => {
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
 
   return (
-    <div className="flex flex-col gap-2 p-2 h-full">
-      <Select
-        className="w-full max-w-sm"
-        label="Edge Mode"
-        value={edgeMode}
-        onChange={(value) => setEdgeMode(value as keyof typeof EdgeMode)}
-        options={Object.fromEntries(
-          Object.entries(EdgeMode).map(([key, value]) => [key, value]),
-        )}
-      />
+    <div className="flex flex-col gap-2 px-2 pb-2 h-full">
+      <CollapsibleChartConfig
+        chartId={chartId}
+        collapsedLabel={EdgeMode[edgeMode] || edgeMode || 'Sankey'}
+      >
+        <Select
+          className="w-full max-w-sm"
+          label="Edge Mode"
+          value={edgeMode}
+          onChange={(value) => setEdgeMode(value as keyof typeof EdgeMode)}
+          options={Object.fromEntries(
+            Object.entries(EdgeMode).map(([key, value]) => [key, value]),
+          )}
+        />
+      </CollapsibleChartConfig>
       <div ref={containerRef} className="flex-1 min-h-0">
         <svg ref={svgRef} className="w-full h-full"></svg>
       </div>

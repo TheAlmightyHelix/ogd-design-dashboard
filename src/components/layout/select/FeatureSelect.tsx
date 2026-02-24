@@ -82,9 +82,9 @@ export default function FeatureSelect({
     parsedFeatures.iteratedFeatures[selectedBaseFeature]?.length > 0;
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 w-full">
       <SearchableSelect
-        className="min-w-xs"
+        className="w-full"
         label="Feature"
         placeholder="Select a feature..."
         value={selectedBaseFeature}

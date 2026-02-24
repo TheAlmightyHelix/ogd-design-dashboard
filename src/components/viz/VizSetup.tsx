@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import useDataStore from '../../store/useDataStore';
 import Select from '../layout/select/Select';
 import { VizType, VizTypeKey } from '../../constants/vizTypes';
+import Input from '../layout/Input';
 
 interface VizSetupProps {
   gameDataIds: string[];
@@ -10,6 +11,8 @@ interface VizSetupProps {
   vizType: VizTypeKey;
   setVizType: (vizType: VizTypeKey) => void;
   setContainerMode: (containerMode: 'settings' | 'viz') => void;
+  title: string;
+  setTitle: (title: string) => void;
 }
 
 const VizSetup = ({
@@ -18,6 +21,8 @@ const VizSetup = ({
   vizType,
   setVizType,
   setContainerMode,
+  title,
+  setTitle,
 }: VizSetupProps) => {
   const { datasets, hasHydrated, getFilteredDataset } = useDataStore();
   const [supportedChartTypes, setSupportedChartTypes] = useState<VizTypeKey[]>(
@@ -34,6 +39,12 @@ const VizSetup = ({
     }
     if (!supportedChartTypes.includes(vizType)) {
       setVizType(supportedChartTypes[0]);
+    }
+    if (!title) {
+      setTitle(
+        `${dataset?.game} ${dataset?.startDate}-${dataset?.endDate} ${dataset?.featureLevel} ${dataset?.additionalDetails?.split ?? ''}` ||
+          '',
+      );
     }
   }, [gameDataIds, datasets]);
 
@@ -90,6 +101,13 @@ const VizSetup = ({
           supportedChartTypes.map((type) => [type, VizType[type]]),
         )}
       />
+      <Input
+        label="Title"
+        placeholder="Type..."
+        value={title}
+        onChange={(value) => setTitle(value)}
+        debounce
+      />
       {vizType === 'datasetComparison' && (
         <div className="w-full space-y-3">
           <Select
@@ -134,7 +152,7 @@ const VizSetup = ({
           !vizType ||
           (vizType === 'datasetComparison' && !gameDataIds[1])
         }
-        className="px-4 py-2 bg-blue-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm disabled:cursor-not-allowed"
+        className="px-4 py-2 bg-blue-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
         onClick={visualize}
       >
         Apply

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import * as d3 from 'd3';
 import {
   regressionLinear,
@@ -7,12 +7,12 @@ import {
   regressionLog,
 } from 'd3-regression';
 import Select from '../../layout/select/Select';
-import SearchableSelect from '../../layout/select/SearchableSelect';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
+import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface ScatterPlotProps {
   dataset: GameData;
@@ -291,24 +291,16 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
 
   return (
-    <div className="flex flex-col gap-2 p-2 h-full">
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row gap-2">
-          {/* <SearchableSelect
-            className="flex-3"
-            label="X-Axis"
-            placeholder="Select feature..."
-            value={xFeature}
-            onChange={(value) => {
-              setXFeature(value);
-              setXRangeFilter({
-                min: -Infinity,
-                max: Infinity,
-              });
-            }}
-            options={getFeatureOptions()}
-          /> */}
-          <FeatureSelect
+    <div className="flex flex-col gap-2 px-2 pb-2 h-full">
+      <CollapsibleChartConfig
+        chartId={chartId}
+        collapsedLabel={
+          xFeature && yFeature ? `${xFeature} vs ${yFeature}` : 'Scatter Plot'
+        }
+      >
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row gap-2">
+            <FeatureSelect
             feature={xFeature}
             handleFeatureChange={(value) => {
               setXFeature(value);
@@ -350,17 +342,6 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
           />
         </div>
         <div className="flex flex-row gap-2">
-          {/* <SearchableSelect
-            className="flex-3"
-            label="Y-Axis"
-            placeholder="Select feature..."
-            value={yFeature}
-            onChange={(value) => {
-              setYFeature(value);
-              setYRangeFilter({ min: -Infinity, max: Infinity });
-            }}
-            options={getFeatureOptions()}
-          /> */}
           <FeatureSelect
             feature={yFeature}
             handleFeatureChange={(value) => {
@@ -418,6 +399,7 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
           />
         </div>
       </div>
+      </CollapsibleChartConfig>
 
       <div ref={containerRef} className="flex-1 min-h-0">
         <svg

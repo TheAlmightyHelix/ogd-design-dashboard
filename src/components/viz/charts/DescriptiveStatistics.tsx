@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import Select from '../../layout/select/Select';
-import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
+import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface DescriptiveStatisticsProps {
   dataset: GameData;
@@ -122,33 +122,34 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 p-2 h-full">
-      <div className="flex flex-row gap-2">
-        {/* <SearchableSelect
-          className="w-full max-w-sm"
-          label="Feature"
-          placeholder="Select a feature..."
-          value={feature}
-          onChange={(value) => setFeature(value)}
-          options={getFeatureOptions()}
-        /> */}
-        <FeatureSelect
-          feature={feature}
-          handleFeatureChange={(value) => setFeature(value)}
-          featureOptions={getFeatureOptions()}
-        />
-        {dataset.featureLevel !== 'population' && (
-          <Select
-            className="w-full max-w-sm"
-            label="Measure"
-            value={measureSelected}
-            onChange={(value) =>
-              setMeasureSelected(value as keyof typeof measures)
-            }
-            options={measures}
+    <div className="flex flex-col gap-2 px-2 pb-2 h-full">
+      <CollapsibleChartConfig
+        chartId={chartId}
+        collapsedLabel={
+          feature
+            ? `${feature} (${measures[measureSelected]})`
+            : 'Descriptive Statistics'
+        }
+      >
+        <div className="flex flex-row gap-2">
+          <FeatureSelect
+            feature={feature}
+            handleFeatureChange={(value) => setFeature(value)}
+            featureOptions={getFeatureOptions()}
           />
-        )}
-      </div>
+          {dataset.featureLevel !== 'population' && (
+            <Select
+              className="w-full max-w-sm"
+              label="Measure"
+              value={measureSelected}
+              onChange={(value) =>
+                setMeasureSelected(value as keyof typeof measures)
+              }
+              options={measures}
+            />
+          )}
+        </div>
+      </CollapsibleChartConfig>
       <div className="flex-grow flex flex-row gap-2 w-full justify-center overflow-y-auto">
         <div className="flex flex-col justify-center items-center gap-6 h-full ">
           {jumbotron()}

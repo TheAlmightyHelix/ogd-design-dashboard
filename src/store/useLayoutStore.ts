@@ -9,6 +9,7 @@ interface ChartConfig {
   datasetIds: string[];
   vizType: VizTypeKey;
   options: Record<string, any>;
+  title?: string;
 }
 
 interface DashboardLayout {
@@ -31,10 +32,13 @@ interface LayoutState {
   saveCurrentLayout: (
     layout: Layout[],
     charts: Record<string, ChartConfig>,
+    title?: string,
   ) => void;
   updateChartConfig: (chartId: string, config: Partial<ChartConfig>) => void;
   setChartOption: (chartId: string, key: string, value: any) => void;
   getChartOption: (chartId: string, key: string) => any;
+  getChartTitle: (chartId: string) => string | undefined;
+  setChartTitle: (chartId: string, title: string) => void;
   getLayoutIdByName: (name: string) => string | undefined;
   updateLayoutName: (id: string, name: string) => void;
   serializeLayout: (layout: DashboardLayoutWithMeta) => string;
@@ -153,6 +157,14 @@ const useLayoutStore = create<LayoutState>()(
         const { currentLayout, layouts } = get();
         if (!currentLayout) return undefined;
         return layouts[currentLayout]?.charts[chartId]?.options?.[key];
+      },
+      getChartTitle: (chartId: string) => {
+        const { currentLayout, layouts } = get();
+        if (!currentLayout) return undefined;
+        return layouts[currentLayout]?.charts[chartId]?.title;
+      },
+      setChartTitle: (chartId: string, title: string) => {
+        get().updateChartConfig(chartId, { title });
       },
       getLayoutIdByName: (name: string) => {
         const { layouts } = get();

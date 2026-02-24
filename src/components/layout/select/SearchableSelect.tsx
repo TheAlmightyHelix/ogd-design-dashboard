@@ -35,6 +35,7 @@ const SearchableSelect = ({
   const [filteredOptions, setFilteredOptions] = useState(options);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setFilteredOptions(options);
@@ -63,6 +64,20 @@ const SearchableSelect = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && scrollContainerRef.current) {
+      const selectedKey = selectMultiple && Array.isArray(value)
+        ? value[0]
+        : (value as string);
+      if (selectedKey && selectedKey in filteredOptions) {
+        const selectedEl = Array.from(
+          scrollContainerRef.current.querySelectorAll('[data-value]'),
+        ).find((el) => el.getAttribute('data-value') === selectedKey);
+        selectedEl?.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+      }
+    }
+  }, [isOpen, selectMultiple, value, filteredOptions]);
 
   const handleSelect = (selectedKey: string) => {
     if (selectMultiple) {
@@ -149,11 +164,15 @@ const SearchableSelect = ({
                 autoFocus
               />
             </div>
-            <div className="max-h-48 overflow-y-auto">
+            <div
+              ref={scrollContainerRef}
+              className="max-h-48 overflow-y-auto"
+            >
               {Object.entries(filteredOptions).length > 0 ? (
                 Object.entries(filteredOptions).map(([key, displayName]) => (
                   <div
                     key={key}
+                    data-value={key}
                     className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${
                       (selectMultiple &&
                         Array.isArray(value) &&

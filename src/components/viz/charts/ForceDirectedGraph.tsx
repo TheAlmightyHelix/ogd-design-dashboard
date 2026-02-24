@@ -5,6 +5,7 @@ import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import { useCallback, useMemo } from 'react';
 import { parseObjectFromString } from './jobGraphUtil';
+import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface ForceDirectedGraphProps {
   dataset: GameData;
@@ -352,15 +353,20 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 p-2 h-full">
-      <SearchableSelect
-        className="w-full max-w-sm"
-        label="Feature"
-        placeholder="Select a feature..."
-        value={feature}
-        onChange={handleFeatureChange}
-        options={getFeatureOptions()}
-      />
+    <div className="flex flex-col gap-2 px-2 pb-2 h-full">
+      <CollapsibleChartConfig
+        chartId={chartId}
+        collapsedLabel={feature || 'Force-Directed Graph'}
+      >
+        <SearchableSelect
+          className="w-full max-w-sm"
+          label="Feature"
+          placeholder="Select a feature..."
+          value={feature}
+          onChange={handleFeatureChange}
+          options={getFeatureOptions()}
+        />
+      </CollapsibleChartConfig>
       <div ref={containerRef} className="flex-1 min-h-0 relative">
         <svg ref={svgRef} className="w-full h-full" />
       </div>

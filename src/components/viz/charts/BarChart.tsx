@@ -6,6 +6,7 @@ import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 import { applyFilters } from '../../sidebar/data-management/filterUtils';
+import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface BarChartProps {
   dataset: GameData;
@@ -304,23 +305,28 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
   };
 
   return (
-    <div className="flex flex-col gap-2 p-2 h-full">
-      <FeatureSelect
-        feature={feature}
-        handleFeatureChange={handleFeatureChange}
-        featureOptions={getFeatureOptions()}
-      />
-      {feature && (
-        <SearchableSelect
-          className="w-full max-w-sm"
-          label="Categories to include"
-          placeholder="All"
-          value={localFilter}
-          onChange={(value) => setLocalFilter(value)}
-          options={filterOptions}
-          selectMultiple
+    <div className="flex flex-col gap-2 px-2 pb-2 h-full">
+      <CollapsibleChartConfig
+        chartId={chartId}
+        collapsedLabel={feature || 'Bar Chart'}
+      >
+        <FeatureSelect
+          feature={feature}
+          handleFeatureChange={handleFeatureChange}
+          featureOptions={getFeatureOptions()}
         />
-      )}
+        {feature && (
+          <SearchableSelect
+            className="w-full max-w-sm"
+            label="Categories to include"
+            placeholder="All"
+            value={localFilter}
+            onChange={(value) => setLocalFilter(value)}
+            options={filterOptions}
+            selectMultiple
+          />
+        )}
+      </CollapsibleChartConfig>
 
       <div ref={containerRef} className="relative flex-1 min-h-0">
         {selectedCategories.length > 0 && (

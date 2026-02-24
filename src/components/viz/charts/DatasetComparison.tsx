@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react';
-import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import useChartOption from '../../../hooks/useChartOption';
 import { tTestTwoSample } from 'simple-statistics';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
+import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface DatasetComparisonProps {
   datasets: GameData[];
@@ -75,22 +75,17 @@ const DatasetComparison: React.FC<DatasetComparisonProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 p-2 h-full ">
-      <div className="flex flex-row gap-2">
-        {/* <SearchableSelect
-          className="w-full max-w-sm"
-          label="Feature"
-          placeholder="Select a feature..."
-          value={feature}
-          onChange={(value) => setFeature(value)}
-          options={getFeatureOptions()}
-        /> */}
+    <div className="flex flex-col gap-2 px-2 pb-2 h-full">
+      <CollapsibleChartConfig
+        chartId={chartId}
+        collapsedLabel={feature || 'Dataset Comparison'}
+      >
         <FeatureSelect
           feature={feature}
           handleFeatureChange={(value) => setFeature(value)}
           featureOptions={getFeatureOptions()}
         />
-      </div>
+      </CollapsibleChartConfig>
       <div className="flex flex-row gap-2 w-full justify-center h-full">
         {feature && (
           <div className="flex flex-col h-full justify-center items-center gap-6">
