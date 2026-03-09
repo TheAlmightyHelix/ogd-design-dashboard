@@ -40,6 +40,9 @@ export default function FeatureSelect({
     return { simpleFeatures, iteratedFeatures };
   }, [featureOptions]);
 
+  const hasIterations = (baseFeature: string) =>
+    parsedFeatures.iteratedFeatures[baseFeature]?.length > 0;
+
   // Initialize state based on current feature
   useEffect(() => {
     if (feature.includes('_')) {
@@ -51,6 +54,19 @@ export default function FeatureSelect({
       setSelectedIteration('');
     }
   }, [feature]);
+
+  useEffect(() => {
+    if (
+      selectedBaseFeature &&
+      hasIterations(selectedBaseFeature) &&
+      !selectedIteration
+    ) {
+      const defaultIteration =
+        parsedFeatures.iteratedFeatures[selectedBaseFeature][0] || '';
+      setSelectedIteration(defaultIteration);
+      handleFeatureChange(`${defaultIteration}_${selectedBaseFeature}`);
+    }
+  }, [selectedBaseFeature, selectedIteration, parsedFeatures]);
 
   // Get all available base features (simple + iterated)
   const allBaseFeatures = useMemo(() => {
@@ -78,9 +94,6 @@ export default function FeatureSelect({
     handleFeatureChange(`${iteration}_${selectedBaseFeature}`);
   };
 
-  const hasIterations =
-    parsedFeatures.iteratedFeatures[selectedBaseFeature]?.length > 0;
-
   return (
     <div className="flex gap-2 w-full">
       <SearchableSelect
@@ -92,7 +105,7 @@ export default function FeatureSelect({
         options={Object.fromEntries(allBaseFeatures.map((f) => [f, f]))}
       />
 
-      {hasIterations && (
+      {selectedBaseFeature && hasIterations(selectedBaseFeature) && (
         <SearchableSelect
           className="max-w-sm"
           label="Iteration"
