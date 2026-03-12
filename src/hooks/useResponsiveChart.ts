@@ -18,7 +18,6 @@ export const useResponsiveChart = (
   ) => (() => void) | void,
   options: UseResponsiveChartOptions = {},
 ) => {
-  const { minWidth = 200, minHeight = 200 } = options;
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState<ChartDimensions>({
@@ -34,9 +33,10 @@ export const useResponsiveChart = (
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        if (width >= minWidth && height >= minHeight) {
-          setDimensions({ width, height });
-        }
+        setDimensions({
+          width: Math.max(0, width),
+          height: Math.max(0, height),
+        });
       }
     });
 
@@ -45,7 +45,7 @@ export const useResponsiveChart = (
     return () => {
       resizeObserver.disconnect();
     };
-  }, [minWidth, minHeight]);
+  }, []);
 
   // Render chart when dimensions or renderChart changes
   useEffect(() => {

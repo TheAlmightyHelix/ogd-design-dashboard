@@ -5,6 +5,7 @@ interface FeatureSelectProps {
   feature: string;
   handleFeatureChange: (feature: string) => void;
   featureOptions: Record<string, string>;
+  label?: string;
 }
 
 interface ParsedFeatures {
@@ -16,6 +17,7 @@ export default function FeatureSelect({
   feature,
   handleFeatureChange,
   featureOptions,
+  label = 'Feature',
 }: FeatureSelectProps) {
   const [selectedBaseFeature, setSelectedBaseFeature] = useState<string>('');
   const [selectedIteration, setSelectedIteration] = useState<string>('');
@@ -98,7 +100,7 @@ export default function FeatureSelect({
     <div className="flex gap-2 w-full">
       <SearchableSelect
         className="w-full"
-        label="Feature"
+        label={label}
         placeholder="Select a feature..."
         value={selectedBaseFeature}
         onChange={handleBaseFeatureChange}

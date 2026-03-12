@@ -88,9 +88,14 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
     ) => {
       if (!xFeature || !yFeature || !data.length) return;
 
-      const margin = { top: 20, right: 20, bottom: 60, left: 60 };
-      const width = dimensions.width - margin.left - margin.right;
-      const height = dimensions.height - margin.top - margin.bottom;
+      const margin = { top: 20, right: 20, bottom: 70, left: 90 };
+      const width = Math.max(0, dimensions.width - margin.left - margin.right);
+      const height = Math.max(
+        0,
+        dimensions.height - margin.top - margin.bottom,
+      );
+
+      if (width <= 0 || height <= 0) return;
 
       const chartGroup = svg
         .append('g')
@@ -247,16 +252,25 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
         }
       }
 
-      // Add X axis
-      const xAxis = d3.axisBottom(xScale);
+      // Add X axis with tick formatting to prevent overlap
+      const xAxis = d3
+        .axisBottom(xScale)
+        .ticks(Math.min(8, Math.floor(width / 50)))
+        .tickFormat(d3.format('~s'));
       chartGroup
         .append('g')
         .attr('transform', `translate(0,${height})`)
         .call(xAxis)
-        .attr('font-size', Math.max(10, Math.min(12, width / 50)));
+        .attr('font-size', Math.max(10, Math.min(12, width / 50)))
+        .selectAll('text')
+        .attr('transform', 'rotate(-25)')
+        .style('text-anchor', 'end');
 
-      // Add Y axis
-      const yAxis = d3.axisLeft(yScale);
+      // Add Y axis with tick formatting
+      const yAxis = d3
+        .axisLeft(yScale)
+        .ticks(Math.min(8, Math.floor(height / 30)))
+        .tickFormat(d3.format('~s'));
       chartGroup
         .append('g')
         .call(yAxis)
@@ -299,114 +313,122 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
         }
       >
         <div className="flex flex-col gap-2">
+          <div className="flex flex-row flex-wrap gap-2 items-end justify-between">
+            <div className="">
+              <FeatureSelect
+                label="X Feature"
+                feature={xFeature}
+                handleFeatureChange={(value) => {
+                  setXFeature(value);
+                  setXRangeFilter({ min: -Infinity, max: Infinity });
+                }}
+                featureOptions={getFeatureOptions()}
+              />
+            </div>
+            <div className="flex flex-row gap-2">
+              <Input
+                label="X Min"
+                value={
+                  xRangeFilter.min === -Infinity || xRangeFilter.min == null
+                    ? ''
+                    : xRangeFilter.min.toString()
+                }
+                onChange={(value) =>
+                  setXRangeFilter({
+                    ...xRangeFilter,
+                    min: value === '' ? -Infinity : parseFloat(value),
+                  })
+                }
+                debounce
+              />
+              <Input
+                label="X Max"
+                value={
+                  xRangeFilter.max === Infinity || xRangeFilter.max == null
+                    ? ''
+                    : xRangeFilter.max.toString()
+                }
+                onChange={(value) =>
+                  setXRangeFilter({
+                    ...xRangeFilter,
+                    max: value === '' ? Infinity : parseFloat(value),
+                  })
+                }
+                debounce
+              />
+            </div>
+          </div>
+          <hr className="mt-1 border-gray-200" />
+          <div className="flex flex-row flex-wrap gap-2 items-end justify-between">
+            <div className="">
+              <FeatureSelect
+                label="Y Feature"
+                feature={yFeature}
+                handleFeatureChange={(value) => {
+                  setYFeature(value);
+                  setYRangeFilter({ min: -Infinity, max: Infinity });
+                }}
+                featureOptions={getFeatureOptions()}
+              />
+            </div>{' '}
+            <div className="flex flex-row gap-2">
+              <Input
+                label="Y Min"
+                value={
+                  yRangeFilter.min === -Infinity || yRangeFilter.min == null
+                    ? ''
+                    : yRangeFilter.min.toString()
+                }
+                onChange={(value) =>
+                  setYRangeFilter({
+                    ...yRangeFilter,
+                    min: value === '' ? -Infinity : parseFloat(value),
+                  })
+                }
+                debounce
+              />
+              <Input
+                label="Y Max"
+                value={
+                  yRangeFilter.max === Infinity || yRangeFilter.max == null
+                    ? ''
+                    : yRangeFilter.max.toString()
+                }
+                onChange={(value) =>
+                  setYRangeFilter({
+                    ...yRangeFilter,
+                    max: value === '' ? Infinity : parseFloat(value),
+                  })
+                }
+                debounce
+              />
+            </div>
+          </div>
+          <hr className="mt-1 border-gray-200" />
           <div className="flex flex-row gap-2">
-            <FeatureSelect
-            feature={xFeature}
-            handleFeatureChange={(value) => {
-              setXFeature(value);
-              setXRangeFilter({ min: -Infinity, max: Infinity });
-            }}
-            featureOptions={getFeatureOptions()}
-          />
-          <Input
-            className="flex-1"
-            label="X Min"
-            value={
-              xRangeFilter.min === -Infinity || xRangeFilter.min == null
-                ? ''
-                : xRangeFilter.min.toString()
-            }
-            onChange={(value) =>
-              setXRangeFilter({
-                ...xRangeFilter,
-                min: value === '' ? -Infinity : parseFloat(value),
-              })
-            }
-            debounce
-          />
-          <Input
-            className="flex-1"
-            label="X Max"
-            value={
-              xRangeFilter.max === Infinity || xRangeFilter.max == null
-                ? ''
-                : xRangeFilter.max.toString()
-            }
-            onChange={(value) =>
-              setXRangeFilter({
-                ...xRangeFilter,
-                max: value === '' ? Infinity : parseFloat(value),
-              })
-            }
-            debounce
-          />
+            <Select
+              label="Trend Line"
+              value={regressionLine}
+              onChange={(value) =>
+                setRegressionLine(value as keyof typeof RegressionLineType)
+              }
+              options={Object.fromEntries(
+                Object.entries(RegressionLineType).map(([key, value]) => [
+                  key,
+                  value,
+                ]),
+              )}
+            />
+          </div>
         </div>
-        <div className="flex flex-row gap-2">
-          <FeatureSelect
-            feature={yFeature}
-            handleFeatureChange={(value) => {
-              setYFeature(value);
-              setYRangeFilter({ min: -Infinity, max: Infinity });
-            }}
-            featureOptions={getFeatureOptions()}
-          />
-          <Input
-            className="flex-1"
-            label="Y Min"
-            value={
-              yRangeFilter.min === -Infinity || yRangeFilter.min == null
-                ? ''
-                : yRangeFilter.min.toString()
-            }
-            onChange={(value) =>
-              setYRangeFilter({
-                ...yRangeFilter,
-                min: value === '' ? -Infinity : parseFloat(value),
-              })
-            }
-            debounce
-          />
-          <Input
-            className="flex-1"
-            label="Y Max"
-            value={
-              yRangeFilter.max === Infinity || yRangeFilter.max == null
-                ? ''
-                : yRangeFilter.max.toString()
-            }
-            onChange={(value) =>
-              setYRangeFilter({
-                ...yRangeFilter,
-                max: value === '' ? Infinity : parseFloat(value),
-              })
-            }
-            debounce
-          />
-        </div>
-        <div className="flex flex-row gap-2">
-          <Select
-            label="Trend Line"
-            value={regressionLine}
-            onChange={(value) =>
-              setRegressionLine(value as keyof typeof RegressionLineType)
-            }
-            options={Object.fromEntries(
-              Object.entries(RegressionLineType).map(([key, value]) => [
-                key,
-                value,
-              ]),
-            )}
-          />
-        </div>
-      </div>
       </CollapsibleChartConfig>
 
-      <div ref={containerRef} className="flex-1 min-h-0">
+      <div ref={containerRef} className="flex-1 min-h-0 min-w-0">
         <svg
           ref={svgRef}
-          className="w-full h-full"
+          className="w-full h-full block"
           style={{ minHeight: '200px' }}
-        ></svg>
+        />
       </div>
     </div>
   );
