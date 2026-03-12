@@ -1,4 +1,5 @@
 import { VizTypeKey } from '../constants/vizTypes';
+import { isGraphFeature } from '../utils/graphFeatureUtils';
 
 export const getColumnTypes = (extractedData: d3.DSVParsedArray<object>) => {
   const columnTypes: Record<string, ColumnType> = {};
@@ -56,6 +57,8 @@ export const getSupportedChartTypes = (
     }
     if (jobGraphFeaturesSupported && jobGraphSubfeaturesSupported) {
       supportedChartTypes.push('jobGraph');
+    }
+    if (forceDirectedGraphSupported || (jobGraphFeaturesSupported && jobGraphSubfeaturesSupported)) {
       supportedChartTypes.push('sankey');
     }
   }
@@ -71,13 +74,33 @@ export const getSupportedChartTypes = (
   return supportedChartTypes;
 };
 
-const isGraphFeature = (value: unknown): boolean => {
-  if (typeof value !== 'string') return false;
+const JOB_GRAPH_FEATURES = [
+  'ActiveJobs',
+  'TopJobSwitchDestinations',
+  'TopJobCompletionDestinations',
+];
+const JOB_GRAPH_SUBFEATURES = [
+  'JobsAttempted-percent-complete',
+  'JobsAttempted-num-completes',
+  'JobsAttempted-num-starts',
+  'JobsAttempted-job-name',
+  'JobsAttempted-avg-time-per-attempt',
+  'JobsAttempted-std-dev-per-attempt',
+];
 
-  try {
-    const parsed = JSON.parse(value);
-    return ['nodes', 'links', 'encodings'].every((key) => key in parsed);
-  } catch {
-    return false;
-  }
-};
+export function hasGraphFeatureSupport(dataset: GameData): boolean {
+  return Object.values(dataset.columnTypes).includes('Graph');
+}
+
+export function hasJobGraphSupport(dataset: GameData): boolean {
+  const columns =
+    (dataset.data as unknown as { columns?: string[] })?.columns ??
+    Object.keys(dataset.columnTypes);
+  const featuresSupported = JOB_GRAPH_FEATURES.some((f) =>
+    columns.some((c) => c.includes(f)),
+  );
+  const subfeaturesSupported = JOB_GRAPH_SUBFEATURES.every((s) =>
+    columns.some((c) => c.includes(s)),
+  );
+  return featuresSupported && subfeaturesSupported;
+}

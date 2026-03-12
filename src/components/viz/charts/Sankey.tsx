@@ -3,6 +3,7 @@ import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import * as d3 from 'd3';
 import { sankey, sankeyLinkHorizontal } from 'd3-sankey';
 import Select from '../../layout/select/Select';
+import SearchableSelect from '../../layout/select/SearchableSelect';
 import {
   EdgeMode,
   getNodes,
@@ -12,6 +13,15 @@ import {
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
+import {
+  parseGraphFeature,
+  graphFeatureToSankey,
+  type SankeyData as GraphSankeyData,
+} from '../../../utils/graphFeatureUtils';
+import {
+  hasGraphFeatureSupport,
+  hasJobGraphSupport,
+} from '../../../adapters/adapterUtils';
 
 interface SankeyProps {
   dataset: GameData;
@@ -35,7 +45,19 @@ interface SankeyData {
   links: SankeyLink[];
 }
 
+type DataSourceMode = 'jobGraph' | 'graphFeature';
+
 export const Sankey: React.FC<SankeyProps> = ({ dataset, chartId }) => {
+  const hasGraphFeatures = hasGraphFeatureSupport(dataset);
+  const hasJobGraph = hasJobGraphSupport(dataset);
+  const showDataSourceSelector = hasGraphFeatures && hasJobGraph;
+
+  const [dataSourceMode, setDataSourceMode] = useChartOption<DataSourceMode>(
+    chartId,
+    'dataSourceMode',
+    hasGraphFeatures ? 'graphFeature' : 'jobGraph',
+  );
+  const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
   const [edgeMode, setEdgeMode] = useChartOption<keyof typeof EdgeMode>(
     chartId,
     'edgeMode',
@@ -43,23 +65,52 @@ export const Sankey: React.FC<SankeyProps> = ({ dataset, chartId }) => {
   );
   const { getFilteredDataset } = useDataStore();
 
-  // Get filtered dataset from centralized store
   const filteredDataset = getFilteredDataset(dataset.id);
   const data = filteredDataset?.data || [];
 
-  const sankeyData = useMemo(() => {
+  const sankeyData = useMemo((): GraphSankeyData | null => {
+    if (!data[0]) return null;
+    if (dataSourceMode === 'graphFeature') {
+      if (!feature) return null;
+      const parsed = parseGraphFeature(
+        (data[0] as Record<string, unknown>)[feature],
+      );
+      if (!parsed) return null;
+      const transformed = graphFeatureToSankey(parsed);
+      const nodeRecord = Object.fromEntries(
+        transformed.nodes.map((n) => [n.id, n]),
+      );
+      if (detectGraphCycles(nodeRecord, transformed.links)) {
+        console.error('Graph contains a cycle (circular links detected)');
+        alert('Data in feature contains a cycle (circular links detected)');
+        return { nodes: [], links: [] };
+      }
+      return transformed;
+    }
     return processDataForSankey(data[0], edgeMode);
-  }, [data, edgeMode]);
+  }, [data, dataSourceMode, feature, edgeMode]);
 
   const renderChart = useCallback(
     (
       svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
       dimensions: { width: number; height: number },
     ) => {
-      if (!sankeyData || sankeyData.nodes.length === 0) return;
-
-      // Clear previous content
       svg.selectAll('*').remove();
+
+      if (!sankeyData || sankeyData.nodes.length === 0) {
+        const message =
+          dataSourceMode === 'graphFeature' && !feature
+            ? 'Select a feature to display chart'
+            : 'No data available';
+        svg
+          .append('text')
+          .attr('x', dimensions.width / 2)
+          .attr('y', dimensions.height / 2)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#6b7280')
+          .text(message);
+        return;
+      }
 
       // Create margins
       const margin = { top: 20, right: 20, bottom: 20, left: 20 };
@@ -217,21 +268,58 @@ export const Sankey: React.FC<SankeyProps> = ({ dataset, chartId }) => {
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
 
+  const getCollapsedLabel = () => {
+    if (dataSourceMode === 'graphFeature') return feature || 'Sankey';
+    return EdgeMode[edgeMode] || edgeMode || 'Sankey';
+  };
+
+  const getFeatureOptions = () =>
+    Object.fromEntries(
+      Object.entries(dataset.columnTypes)
+        .filter(([, value]) => value === 'Graph')
+        .map(([key]) => [key, key]),
+    );
+
   return (
     <div className="flex flex-col gap-2 px-2 pb-2 h-full">
       <CollapsibleChartConfig
         chartId={chartId}
-        collapsedLabel={EdgeMode[edgeMode] || edgeMode || 'Sankey'}
+        collapsedLabel={getCollapsedLabel()}
       >
-        <Select
-          className="w-full max-w-sm"
-          label="Edge Mode"
-          value={edgeMode}
-          onChange={(value) => setEdgeMode(value as keyof typeof EdgeMode)}
-          options={Object.fromEntries(
-            Object.entries(EdgeMode).map(([key, value]) => [key, value]),
+        <div className="flex flex-col gap-2">
+          {showDataSourceSelector && (
+            <Select
+              className="w-full max-w-sm"
+              label="Data Source"
+              value={dataSourceMode}
+              onChange={(value) => setDataSourceMode(value as DataSourceMode)}
+              options={{
+                jobGraph: 'Job Graph',
+                graphFeature: 'Graph Feature',
+              }}
+            />
           )}
-        />
+          {dataSourceMode === 'graphFeature' ? (
+            <SearchableSelect
+              className="w-full max-w-sm"
+              label="Feature"
+              placeholder="Select a feature..."
+              value={feature}
+              onChange={setFeature}
+              options={getFeatureOptions()}
+            />
+          ) : (
+            <Select
+              className="w-full max-w-sm"
+              label="Edge Mode"
+              value={edgeMode}
+              onChange={(value) => setEdgeMode(value as keyof typeof EdgeMode)}
+              options={Object.fromEntries(
+                Object.entries(EdgeMode).map(([key, value]) => [key, value]),
+              )}
+            />
+          )}
+        </div>
       </CollapsibleChartConfig>
       <div ref={containerRef} className="flex-1 min-h-0">
         <svg ref={svgRef} className="w-full h-full"></svg>
