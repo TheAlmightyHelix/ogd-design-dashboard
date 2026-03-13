@@ -9,6 +9,35 @@ import FeatureSelect from '../../layout/select/FeatureSelect';
 import { applyFilters } from '../../sidebar/data-management/filterUtils';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
+/** Get merged "in filter" segments for a bin given selected ranges (left/right in value space) */
+function getInSegments(
+  binMin: number,
+  binMax: number,
+  ranges: Array<{ min: number; max: number }>,
+): Array<{ start: number; end: number }> {
+  const segments: Array<{ start: number; end: number }> = [];
+  for (const range of ranges) {
+    const segStart = Math.max(binMin, range.min);
+    const segEnd = Math.min(binMax, range.max);
+    if (segStart < segEnd) {
+      segments.push({ start: segStart, end: segEnd });
+    }
+  }
+  if (segments.length === 0) return [];
+  segments.sort((a, b) => a.start - b.start);
+  const merged = [segments[0]];
+  for (let i = 1; i < segments.length; i++) {
+    const last = merged[merged.length - 1];
+    const curr = segments[i];
+    if (curr.start <= last.end) {
+      last.end = Math.max(last.end, curr.end);
+    } else {
+      merged.push(curr);
+    }
+  }
+  return merged;
+}
+
 interface HistogramProps {
   dataset: GameData;
   chartId: string;
@@ -152,15 +181,6 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         number,
       ];
 
-      // Helper to check if a bin is selected
-      const isBinSelected = (bin: d3.Bin<number, number>) => {
-        const binMin = bin.x0 ?? -Infinity;
-        const binMax = bin.x1 ?? Infinity;
-        return selectedBins.some(
-          (range) => range.min === binMin && range.max === binMax,
-        );
-      };
-
       // X scale (linear) - use bin boundaries for proper alignment
       const xScale = d3.scaleLinear().domain(xExtent).range([0, width]);
 
@@ -170,38 +190,97 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .domain([0, d3.max(bins, (d) => d.length) || 0])
         .range([height, 0]);
 
-      // Add bars
-      chartGroup
-        .selectAll('.bar')
+      const BAR_GAP = 1;
+      const HIGHLIGHT = '#ff8e38';
+      const DIMMED = '#d1d5db';
+
+      // Add bars (with partial fill when bins span filter thresholds)
+      const barGroups = chartGroup
+        .selectAll('.bar-group')
         .data(bins)
         .enter()
-        .append('rect')
-        .attr('class', 'bar')
-        .attr('x', (d) => xScale(d.x0 || 0))
-        .attr('y', (d) => yScale(d.length))
-        .attr('width', (d) =>
-          Math.max(0, xScale(d.x1 || 0) - xScale(d.x0 || 0) - 1),
-        )
-        .attr('height', (d) => height - yScale(d.length))
-        .attr('fill', (d) => {
-          const selected = isBinSelected(d);
-          const hasSelection = selectedBins.length > 0;
-          return hasSelection && !selected ? '#d1d5db' : '#ff8e38';
-        })
-        .attr('rx', 1)
+        .append('g')
+        .attr('class', 'bar-group')
         .style('cursor', 'pointer')
         .on('mouseover', function () {
-          d3.select(this).transition().duration(200).style('opacity', 0.8);
+          d3.select(this)
+            .selectAll('rect')
+            .transition()
+            .duration(200)
+            .style('opacity', 0.8);
         })
         .on('mouseout', function () {
-          d3.select(this).transition().duration(200).style('opacity', 1);
+          d3.select(this)
+            .selectAll('rect')
+            .transition()
+            .duration(200)
+            .style('opacity', 1);
         })
         .on('click', (_, d) => {
           const binMin = d.x0 ?? -Infinity;
           const binMax = d.x1 ?? Infinity;
-          const binRange = { min: binMin, max: binMax };
-          handleBinToggle(binRange);
+          handleBinToggle({ min: binMin, max: binMax });
         });
+
+      barGroups.each(function (d) {
+        const g = d3.select(this);
+        const binMin = d.x0 ?? -Infinity;
+        const binMax = d.x1 ?? Infinity;
+        const barLeft = xScale(binMin);
+        const barRight = xScale(binMax) - BAR_GAP;
+        const barWidth = Math.max(0, barRight - barLeft);
+        const barY = yScale(d.length);
+        const barHeight = height - barY;
+
+        const inSegments =
+          selectedBins.length > 0
+            ? getInSegments(binMin, binMax, selectedBins)
+            : [];
+
+        if (selectedBins.length === 0) {
+          g.append('rect')
+            .attr('class', 'bar')
+            .attr('x', barLeft)
+            .attr('y', barY)
+            .attr('width', barWidth)
+            .attr('height', barHeight)
+            .attr('fill', HIGHLIGHT)
+            .attr('rx', 1);
+        } else if (inSegments.length === 0) {
+          g.append('rect')
+            .attr('class', 'bar')
+            .attr('x', barLeft)
+            .attr('y', barY)
+            .attr('width', barWidth)
+            .attr('height', barHeight)
+            .attr('fill', DIMMED)
+            .attr('rx', 1);
+        } else {
+          g.append('rect')
+            .attr('class', 'bar bar-base')
+            .attr('x', barLeft)
+            .attr('y', barY)
+            .attr('width', barWidth)
+            .attr('height', barHeight)
+            .attr('fill', DIMMED)
+            .attr('rx', 1);
+
+          const binSpan = binMax - binMin;
+          for (const seg of inSegments) {
+            const segLeft =
+              barLeft + barWidth * (seg.start - binMin) / binSpan;
+            const segWidth = barWidth * (seg.end - seg.start) / binSpan;
+            g.append('rect')
+              .attr('class', 'bar bar-segment')
+              .attr('x', segLeft)
+              .attr('y', barY)
+              .attr('width', Math.max(0, segWidth))
+              .attr('height', barHeight)
+              .attr('fill', HIGHLIGHT)
+              .attr('rx', 0);
+          }
+        }
+      });
 
       // Add bar labels (only if there's enough space and not too many bins)
       if (bins.length <= 15) {
