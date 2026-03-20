@@ -5,6 +5,7 @@ import useLayoutStore, {
 import useDataStore from '../../store/useDataStore';
 import { useState } from 'react';
 import Input from '../layout/Input';
+import { trackEvent } from '../../lib/analytics';
 
 const LayoutManager = () => {
   const {
@@ -22,6 +23,7 @@ const LayoutManager = () => {
   const [editingName, setEditingName] = useState('');
 
   const handleCreate = () => {
+    trackEvent('dashboard_created');
     createLayout();
   };
 
@@ -69,6 +71,7 @@ const LayoutManager = () => {
     a.download = `${layout.name}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    trackEvent('layout_export');
   };
 
   return (
@@ -89,7 +92,10 @@ const LayoutManager = () => {
             className={`p-3 hover:bg-blue-50 rounded-lg border border-gray-100 transition-colors ${
               currentLayout === id ? 'bg-blue-100' : 'bg-gray-50'
             }`}
-            onClick={() => setCurrentLayout(id)}
+            onClick={() => {
+              setCurrentLayout(id);
+              trackEvent('dashboard_switch', { layout_id: id, layout_name: layout.name });
+            }}
           >
             <div className="w-full flex justify-between items-center gap-2">
               {editingId === id ? (

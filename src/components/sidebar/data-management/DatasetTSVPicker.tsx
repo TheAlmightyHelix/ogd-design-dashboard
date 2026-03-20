@@ -2,6 +2,7 @@ import { Upload } from 'lucide-react';
 import { useRef } from 'react';
 import useDataStore from '../../../store/useDataStore';
 import { parseTSV } from '../../../adapters/tsvAdapter';
+import { trackEvent } from '../../../lib/analytics';
 
 const DatasetTSVPicker = () => {
   const { addDataset } = useDataStore();
@@ -36,6 +37,9 @@ const DatasetTSVPicker = () => {
         console.log('Processing file:', file.name);
         const dataset = await parseTSV(file);
         addDataset(dataset);
+        trackEvent('dataset_added_via_tsv', {
+          dataset_id: dataset.id,
+        });
       }
     } catch (error) {
       console.error('Error parsing TSV file:', error);

@@ -8,6 +8,7 @@ import DatasetDeepLinkProvider from '../components/providers/DatasetDeepLinkProv
 import { Upload } from 'lucide-react';
 import useDataStore from '../store/useDataStore';
 import useLayoutStore from '../store/useLayoutStore';
+import { trackEvent } from '../lib/analytics';
 
 const HomePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -39,10 +40,12 @@ const HomePage: React.FC = () => {
             datasets: { ...state.datasets, ...importData.datasets },
           }));
         }
+        trackEvent('layout_import');
       } else {
         // Legacy format - use old method
         const layout = loadLayout(importJson);
         setCurrentLayout(layout.id);
+        trackEvent('layout_import');
       }
     };
     fileReader.readAsText(file);

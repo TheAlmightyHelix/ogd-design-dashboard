@@ -6,6 +6,7 @@ import VizContainer from './VizContainer';
 import { v4 as uuidv4 } from 'uuid';
 import useLayoutStore from '../../store/useLayoutStore';
 import { Plus, Wrench } from 'lucide-react';
+import { trackEvent } from '../../lib/analytics';
 
 const MAX_COLS = 12;
 const DEFAULT_CHART_WIDTH = 4;
@@ -130,6 +131,7 @@ const GridLayout: React.FC = () => {
     ];
     saveCurrentLayout(newLayout, newCharts);
     updateSpawnPoint(newLayout);
+    trackEvent('chart_added');
   };
 
   const removeChart = (chartId: string) => {
