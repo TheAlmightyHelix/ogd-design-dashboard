@@ -45,6 +45,8 @@ Field Day Lab processes rich gameplay data—population, session, and player fea
 
 Make sure you have node v22.17.1 (or newer) and npm v10.9.2 (or newer) install on your machine.
 
+Copy `.env.example` to `.env.local` and optionally add your Google Analytics measurement ID (`NEXT_PUBLIC_GA_MEASUREMENT_ID`) for usage tracking. Analytics only runs in production when the ID is set.
+
 Install relevant npm packages:
 `npm install`
 

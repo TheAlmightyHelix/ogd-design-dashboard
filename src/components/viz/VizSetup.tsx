@@ -4,6 +4,7 @@ import useDataStore from '../../store/useDataStore';
 import Select from '../layout/select/Select';
 import { VizType, VizTypeKey } from '../../constants/vizTypes';
 import Input from '../layout/Input';
+import { trackEvent } from '../../lib/analytics';
 
 interface VizSetupProps {
   gameDataIds: string[];
@@ -49,6 +50,11 @@ const VizSetup = ({
   }, [gameDataIds, datasets]);
 
   const visualize = () => {
+    trackEvent('chart_applied', {
+      viz_type: vizType,
+      dataset_id: gameDataIds.join(', '),
+    });
+    
     if (gameDataIds.length) {
       setContainerMode('viz');
     }

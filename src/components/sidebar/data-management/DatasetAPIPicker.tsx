@@ -10,6 +10,7 @@ import {
   normalizeApiResponse,
 } from '../../../adapters/apiAdapter';
 import { X } from 'lucide-react';
+import { trackEvent } from '../../../lib/analytics';
 
 const DatasetAPIPicker = () => {
   const { addDataset, hasDataset } = useDataStore();
@@ -76,14 +77,16 @@ const DatasetAPIPicker = () => {
       api.getDataset(game, dataset.split('/')[1], dataset.split('/')[0], level),
     onSuccess: (responseBody, variables) => {
       if (responseBody) {
-        addDataset(
-          normalizeApiResponse(
-            responseBody,
-            variables.game,
-            variables.dataset,
-            variables.level,
-          ),
+        const dataset = normalizeApiResponse(
+          responseBody,
+          variables.game,
+          variables.dataset,
+          variables.level,
         );
+        addDataset(dataset);
+        trackEvent('dataset_added_via_api', {
+          dataset_id: dataset.id,
+        });
       }
     },
     onSettled: (data, error, variables) => {
@@ -116,6 +119,9 @@ const DatasetAPIPicker = () => {
     level: 'population' | 'player' | 'session';
   }) => {
     const isImporting = importingLevels.has(level);
+    const isImported = hasDataset(
+      generateAPIDatasetID(selectedGame, selectedDataset, level),
+    );
     return (
       <div
         key={level}
@@ -142,13 +148,11 @@ const DatasetAPIPicker = () => {
               generateAPIDatasetID(selectedGame, selectedDataset, level),
             )
           }
-          className="w-full bg-blue-400 text-white px-4 py-2 rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`w-full ${isImported ? 'bg-gray-400' : 'bg-blue-400 hover:bg-blue-500'} text-white px-4 py-2 rounded-md font-medium cursor-pointer shadow transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {isImporting
             ? 'Importing...'
-            : hasDataset(
-                  generateAPIDatasetID(selectedGame, selectedDataset, level),
-                )
+            : isImported
               ? 'Imported'
               : 'Add to Dashboard'}
         </button>

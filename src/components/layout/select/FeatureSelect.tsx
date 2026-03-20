@@ -1,5 +1,6 @@
 import SearchableSelect from './SearchableSelect';
 import { useMemo, useState, useEffect } from 'react';
+import { trackEvent } from '../../../lib/analytics';
 
 interface FeatureSelectProps {
   feature: string;
@@ -21,6 +22,10 @@ export default function FeatureSelect({
 }: FeatureSelectProps) {
   const [selectedBaseFeature, setSelectedBaseFeature] = useState<string>('');
   const [selectedIteration, setSelectedIteration] = useState<string>('');
+
+  const emitFeatureSelected = (selectedFeature: string) => {
+    trackEvent('feature_selected', { feature: selectedFeature });
+  };
 
   // Parse features into simple and iterated categories
   const parsedFeatures: ParsedFeatures = useMemo(() => {
@@ -66,7 +71,9 @@ export default function FeatureSelect({
       const defaultIteration =
         parsedFeatures.iteratedFeatures[selectedBaseFeature][0] || '';
       setSelectedIteration(defaultIteration);
-      handleFeatureChange(`${defaultIteration}_${selectedBaseFeature}`);
+      const selectedFeature = `${defaultIteration}_${selectedBaseFeature}`;
+      emitFeatureSelected(selectedFeature);
+      handleFeatureChange(selectedFeature);
     }
   }, [selectedBaseFeature, selectedIteration, parsedFeatures]);
 
@@ -87,13 +94,16 @@ export default function FeatureSelect({
 
     // If it's a simple feature, directly call the handler
     if (parsedFeatures.simpleFeatures.includes(baseFeature)) {
+      emitFeatureSelected(baseFeature);
       handleFeatureChange(baseFeature);
     }
   };
 
   const handleIterationChange = (iteration: string) => {
     setSelectedIteration(iteration);
-    handleFeatureChange(`${iteration}_${selectedBaseFeature}`);
+    const selectedFeature = `${iteration}_${selectedBaseFeature}`;
+    emitFeatureSelected(selectedFeature);
+    handleFeatureChange(selectedFeature);
   };
 
   return (

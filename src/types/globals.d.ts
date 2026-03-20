@@ -1,6 +1,9 @@
 import * as d3 from 'd3';
 
 declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
   interface GameData {
     id: string;
     game: string;
