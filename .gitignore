@@ -6,5 +6,7 @@ coverage
 .env.local
 tsconfig.tsbuildinfo
 
-# folders
+# LLM agentic
 /.cursor/
+/.agents/
+skills-lock.json
