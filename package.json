@@ -13,6 +13,7 @@
     "@stdlib/stats-base-dists-t-cdf": "^0.2.3",
     "@tailwindcss/postcss": "^4.1.10",
     "@tanstack/react-query": "^5.90.11",
+    "ai": "^6.0.138",
     "axios": "latest",
     "d3": "latest",
     "d3-regression": "^1.3.10",
