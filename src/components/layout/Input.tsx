@@ -6,6 +6,7 @@ interface InputProps {
   label?: string;
   value: string;
   onChange: (value: string) => void;
+  onEnter?: () => void;
   placeholder?: string;
   debounce?: boolean;
   autoFocus?: boolean;
@@ -17,6 +18,7 @@ const Input = ({
   label,
   value,
   onChange,
+  onEnter,
   placeholder,
   debounce = false,
   autoFocus = false,
@@ -62,6 +64,11 @@ const Input = ({
         onChange={(e) => setInternalValue(e.target.value)}
         onBlur={() => onChange(internalValue)}
         autoFocus={autoFocus}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            onEnter?.();
+          }
+        }}
       />
     </div>
   );

@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import useLayoutStore from '../../store/useLayoutStore';
 import { Plus, Wrench } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
-
+import Input from './Input';
 const MAX_COLS = 12;
 const DEFAULT_CHART_WIDTH = 4;
 const DEFAULT_CHART_HEIGHT = 3;
@@ -204,6 +204,8 @@ const GridLayout: React.FC = () => {
     setSpawnPoint({ x: nextX, y: nextY });
   };
 
+  const [prompt, setPrompt] = useState('');
+
   return (
     <div className="min-h-screen mb-20">
       <div className="flex items-center gap-4 mb-2">
@@ -228,7 +230,7 @@ const GridLayout: React.FC = () => {
         </button>
       </div>
 
-      <div className="">
+      <div>
         {/* Grid */}
         {isInitialized ? (
           <Grid
