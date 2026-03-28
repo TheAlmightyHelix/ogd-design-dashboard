@@ -15,7 +15,9 @@ const DataSourceList = () => {
         <DatasetAPIPicker />
         <DatasetTSVPicker />
       </div>
-      {!hasHydrated && <div>Loading datasets...</div>}
+      {!hasHydrated && (
+        <div className="text-sm text-gray-500">Loading datasets...</div>
+      )}
       {hasHydrated && Object.keys(datasets).length === 0 && (
         <div className="text-sm text-gray-500">No datasets loaded</div>
       )}

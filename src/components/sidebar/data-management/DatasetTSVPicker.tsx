@@ -75,7 +75,7 @@ const DatasetTSVPicker = () => {
         className="inline-flex items-center justify-center px-4 py-2 bg-gray-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-gray-500 transition-colors text-sm"
       >
         <Upload className="w-4 h-4 mr-2" />
-        Upload Open Game Data TSV files
+        Upload Open Game Data TSV
       </label>
       <input
         ref={fileInputRef}

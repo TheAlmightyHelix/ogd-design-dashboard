@@ -12,31 +12,34 @@ const CollapsibleSidePanel: React.FC<CollapsibleSidePanelProps> = ({
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div className="fixed right-0 top-0 h-full bg-white border-l border-gray-200 shadow-lg transition-all duration-300 ease-in-out z-50">
-      {/* Toggle Button */}
+    <aside className="flex h-full min-h-0 shrink-0 flex-row border-l border-gray-200 bg-white shadow-sm">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="absolute -left-8.5 top-0 bg-white border border-gray-200 rounded-l-lg p-2 shadow-sm hover:bg-gray-50 transition-colors"
+        className="flex w-8 shrink-0 flex-col items-center justify-start self-stretch border-r border-gray-200 bg-white py-3 hover:bg-gray-50 transition-colors"
         aria-label={isOpen ? 'Close panel' : 'Open panel'}
       >
         {isOpen ? (
-          <ChevronRight className="w-4 h-4 text-gray-600" />
+          <ChevronRight className="h-4 w-4 text-gray-600" />
         ) : (
-          <ChevronLeft className="w-4 h-4 text-gray-600" />
+          <ChevronLeft className="h-4 w-4 text-gray-600" />
         )}
       </button>
 
-      {/* Panel Content */}
       <div
-        className={`h-full transition-all duration-300 ease-in-out ${
-          isOpen ? 'w-2xl opacity-100' : 'w-0 opacity-0'
-        } overflow-y-auto`}
+        className={`flex min-h-0 flex-col transition-[width,opacity] duration-300 ease-in-out ${
+          isOpen
+            ? 'h-full w-[min(42rem,40vw)] opacity-100'
+            : 'h-full w-0 overflow-hidden opacity-0'
+        }`}
       >
-        <div className="h-full w-2xl flex flex-col">
-          <div className="flex-1 overflow-y-auto px-4 py-2">{children}</div>
+        <div className="flex h-full min-h-0 w-[min(42rem,40vw)] min-w-0 flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2">
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };
 

@@ -1,5 +1,6 @@
 import { Filter, ChevronRight, ScissorsLineDashed, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import Input from '../../layout/Input';
 import Select from '../../layout/select/Select';
 import useDataStore from '../../../store/useDataStore';
 import DatasetFilter from './DatasetFilter';
@@ -12,6 +13,7 @@ interface DatasetItemProps {
 
 const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [featureSearch, setFeatureSearch] = useState('');
   const { updateDatasetColumnType, getFilteredDataset } = useDataStore();
   const filteredDataset = getFilteredDataset(dataset.id);
 
@@ -93,6 +95,14 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
     return features;
   }, [dataset.columnTypes, iteratedFeatureMap]);
 
+  const filteredDisplayFeatures = useMemo(() => {
+    const q = featureSearch.trim().toLowerCase();
+    if (!q) return displayFeatures;
+    return displayFeatures.filter((f) =>
+      f.displayName.toLowerCase().includes(q),
+    );
+  }, [displayFeatures, featureSearch]);
+
   const getColumnTypeOptions = (feature: string) => {
     if (feature.includes('PlayerProgression')) {
       return { Graph: 'Graph' };
@@ -123,8 +133,16 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
 
         <hr className="border-gray-200 my-2" />
         <div className="font-bold text-sm text-gray-800 p-2">Features</div>
+        <div className="px-2 pb-2">
+          <Input
+            value={featureSearch}
+            onChange={setFeatureSearch}
+            placeholder="Search features…"
+            debounce
+          />
+        </div>
         <div>
-          {displayFeatures.map(
+          {filteredDisplayFeatures.map(
             ({
               displayName,
               relatedFeatureKeys,
