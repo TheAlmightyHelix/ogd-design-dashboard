@@ -54,7 +54,7 @@ const VizSetup = ({
       viz_type: vizType,
       dataset_id: gameDataIds.join(', '),
     });
-    
+
     if (gameDataIds.length) {
       setContainerMode('viz');
     }
@@ -68,7 +68,9 @@ const VizSetup = ({
 
   return (
     <div className="h-full flex flex-col gap-6 justify-center items-start p-4">
-      {!hasHydrated && <div>Loading datasets...</div>}
+      {!hasHydrated && (
+        <div className="text-sm text-gray-500">Loading datasets...</div>
+      )}
       <div className="w-full space-y-3">
         <Select
           className="w-full"
