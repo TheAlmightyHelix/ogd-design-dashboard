@@ -1,5 +1,6 @@
 import type { AppProps } from 'next/app';
 import React, { useEffect } from 'react';
+import Head from 'next/head';
 import Script from 'next/script';
 import { useRouter } from 'next/router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -32,6 +33,11 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <Head>
+        <link rel="icon" type="image/png" sizes="16x16" href="/ogd/OGD-16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/ogd/OGD-32.png" />
+        <link rel="apple-touch-icon" href="/ogd/OGD-128.png" />
+      </Head>
       {GA_ENABLED && (
         <>
           <Script
