@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Components } from 'react-markdown';
-import Input from '../components/layout/Input';
+import Input from '../layout/Input';
 import {
   DefaultChatTransport,
   lastAssistantMessageIsCompleteWithToolCalls,
@@ -8,10 +8,10 @@ import {
 import { useChat } from '@ai-sdk/react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import useLayoutStore from '../store/useLayoutStore';
-import useDataStore from '../store/useDataStore';
-import apiService from '../services/apiService';
-import { normalizeApiResponse } from '../adapters/apiAdapter';
+import useDataStore from '../../store/useDataStore';
+import apiService from '../../services/apiService';
+import { normalizeApiResponse } from '../../adapters/apiAdapter';
+import { Loader2 } from 'lucide-react';
 
 /** Typography-only overrides for readable markdown (size + line height + vertical rhythm). */
 const markdownComponents: Components = {
@@ -93,11 +93,11 @@ const markdownComponents: Components = {
   ),
 };
 
-const ChatPage = () => {
+const AppChatPanel = () => {
   const [userInput, setUserInput] = useState('');
-  const { createLayout } = useLayoutStore();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { addDataset } = useDataStore();
-  const { messages, sendMessage, addToolOutput } = useChat({
+  const { messages, sendMessage, addToolOutput, status } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
     }),
@@ -108,7 +108,6 @@ const ChatPage = () => {
       }
 
       if (toolCall.toolName === 'addDataset') {
-        console.log('addDataset', toolCall.input);
         const { game, month, year, level } = toolCall.input as {
           game: string;
           month: string;
@@ -147,6 +146,22 @@ const ChatPage = () => {
     },
   });
 
+  const transcriptSignature = useMemo(
+    () =>
+      messages
+        .flatMap((m) =>
+          m.parts.flatMap((p) => (p.type === 'text' ? [p.text] : [])),
+        )
+        .join('\u0001'),
+    [messages],
+  );
+
+  useLayoutEffect(() => {
+    const el = scrollAreaRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [transcriptSignature, status]);
+
   const handleUserInput = async () => {
     sendMessage({
       text: userInput,
@@ -155,7 +170,7 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex h-full max-h-full min-h-0 flex-col overflow-hidden p-4">
+    <div className="flex h-full max-h-full min-h-0 flex-col overflow-hidden">
       <div className="sticky top-0 z-10 shrink-0 border-b border-gray-200 bg-white pb-3">
         <Input
           value={userInput}
@@ -164,7 +179,10 @@ const ChatPage = () => {
           placeholder="Enter a prompt"
         />
       </div>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto pt-3">
+      <div
+        ref={scrollAreaRef}
+        className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto pt-3"
+      >
         {messages.map((message) => (
           <div
             key={message.id}
@@ -178,7 +196,7 @@ const ChatPage = () => {
               part.type === 'text' ? (
                 <div
                   key={index}
-                  className="max-w-none text-base leading-[1.65] text-gray-900 [&>*:first-child]:mt-0"
+                  className="max-w-none text-sm leading-[1.65] text-gray-900 [&>*:first-child]:mt-0"
                 >
                   <Markdown
                     remarkPlugins={[remarkGfm]}
@@ -191,9 +209,15 @@ const ChatPage = () => {
             )}
           </div>
         ))}
+        {status === 'submitted' && (
+          <div className="flex items-center justify-start">
+            <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />
+            <span className="text-sm text-gray-500">Thinking...</span>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default ChatPage;
+export default AppChatPanel;

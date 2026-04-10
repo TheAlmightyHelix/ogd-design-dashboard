@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import GridLayout from '../components/layout/GridLayout';
+import AppChatPanel from '../components/chat/AppChatPanel';
 import DataSourceList from '../components/sidebar/data-management/DataSourceList';
 import CollapsibleSidePanel from '../components/sidebar/CollapsibleSidePanel';
 import LayoutManager from '../components/sidebar/LayoutManager';
@@ -55,13 +56,7 @@ const HomePage: React.FC = () => {
     <DatasetDeepLinkProvider>
       <>
         <div className="flex h-screen min-h-0 flex-row overflow-hidden bg-gray-50">
-          {/* Main: own scroll; panel stays full viewport height */}
-          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4">
-            <GridLayout />
-          </div>
-
-          {/* Collapsible side panel — full height, scrolls independently */}
-          <CollapsibleSidePanel>
+          <CollapsibleSidePanel side="left" collapsedLabel="Data">
             <div className="flex h-full flex-col">
               <div className="flex items-center justify-between border-b border-gray-200">
                 <nav className="flex space-x-2" aria-label="Tabs">
@@ -116,6 +111,28 @@ const HomePage: React.FC = () => {
               <div className="mt-2 flex-1">
                 {activeTab === 0 && <DataSourceList />}
                 {activeTab === 1 && <LayoutManager />}
+              </div>
+            </div>
+          </CollapsibleSidePanel>
+
+          {/* Main: own scroll; panels stay full viewport height */}
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4">
+            <GridLayout />
+          </div>
+
+          <CollapsibleSidePanel
+            side="right"
+            collapsedLabel="Assistant"
+            scrollBody={false}
+            defaultOpen={false}
+            widthClassName="w-[min(28rem,34vw)]"
+          >
+            <div className="flex h-full min-h-0 flex-col gap-2">
+              <h2 className="shrink-0 text-sm font-semibold text-gray-800">
+                Assistant
+              </h2>
+              <div className="min-h-0 flex-1">
+                <AppChatPanel />
               </div>
             </div>
           </CollapsibleSidePanel>
