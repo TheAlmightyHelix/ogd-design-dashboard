@@ -28,9 +28,14 @@ const Input = ({
   const [isFocused, setIsFocused] = useState(false);
 
   // Sync from parent when not focused; while focused, parent value can lag (e.g. debounce) — syncing would reset the caret.
+  // Exception: parent-driven clear (e.g. submit) must still empty the field while focus stays on the input.
   useEffect(() => {
     if (!isFocused) {
       setInternalValue(value);
+      return;
+    }
+    if (value === '') {
+      setInternalValue('');
     }
   }, [value, isFocused]);
 
