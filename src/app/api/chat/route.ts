@@ -32,20 +32,30 @@ export async function POST(request: Request) {
           return apiService.getGames();
         },
       }),
-      fetchDataset: tool({
+      // fetchDataset: tool({
+      //   description:
+      //     'Fetch a dataset from the Open Game Data dataset repository. Use your best judgement to convert user input into valid input for this tool.',
+      //   inputSchema: z.object({
+      //     game: z.string(),
+      //     month: z.string().regex(/^(0[1-9]|1[0-2])$/, 'Month must be 01-12'),
+      //     year: z.string().regex(/^\d{4}$/, 'Year must be 4 digits'),
+      //     level: z.enum(['population', 'player', 'session']),
+      //   }),
+      //   execute: async ({ game, month, year, level }) => {
+      //     const dataset = await apiService.getDataset(game, month, year, level);
+
+      //     return dataset;
+      //   },
+      // }),
+      addDataset: tool({
         description:
-          'Fetch a dataset from the Open Game Data dataset repository. Use your best judgement to convert user input into valid input for this tool.',
+          'Fetch a dataset from the Open Game Data dataset repository and add it to the local storage. Use your best judgement to convert user input into valid input for this tool.',
         inputSchema: z.object({
           game: z.string(),
           month: z.string().regex(/^(0[1-9]|1[0-2])$/, 'Month must be 01-12'),
           year: z.string().regex(/^\d{4}$/, 'Year must be 4 digits'),
           level: z.enum(['population', 'player', 'session']),
         }),
-        execute: async ({ game, month, year, level }) => {
-          const dataset = await apiService.getDataset(game, month, year, level);
-
-          return dataset;
-        },
       }),
     },
     onAbort: () => {
@@ -58,9 +68,9 @@ export async function POST(request: Request) {
       console.log('Error...', error);
     },
     system:
-      'You are a helpful assistant that can help with questions and tasks related to Open Game Data Dashboard (a visualization tool for game data).',
+      "You are a helpful assistant that can help with questions and tasks related to Open Game Data Dashboard (a visualization tool for game data). It's safe to assume that the user is not technical, so don't use programming terms or jargon.",
     messages: await convertToModelMessages(messages),
-    stopWhen: stepCountIs(3),
+    stopWhen: stepCountIs(5),
   });
   return result.toUIMessageStreamResponse();
 }
