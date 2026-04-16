@@ -32,6 +32,16 @@ export async function POST(request: Request) {
           return apiService.getGames();
         },
       }),
+      getGameManifest: tool({
+        description:
+          'Get the manifest for a game from the Open Game Data dataset repository. A manifest documents the features (definition, datatype, etc.) available and other metadata for a game.',
+        inputSchema: z.object({
+          gameName: z.string(),
+        }),
+        execute: async ({ gameName }) => {
+          return apiService.getGameManifest(gameName);
+        },
+      }),
       // fetchDataset: tool({
       //   description:
       //     'Fetch a dataset from the Open Game Data dataset repository. Use your best judgement to convert user input into valid input for this tool.',
