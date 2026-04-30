@@ -37,9 +37,16 @@ export async function POST(request: Request) {
           'Get the manifest for a game from the Open Game Data dataset repository. A manifest documents the features (definition, datatype, etc.) available and other metadata for a game.',
         inputSchema: z.object({
           gameName: z.string(),
+          year: z.string().regex(/^\d{4}$/, 'Year must be 4 digits'),
+          month: z.string().regex(/^(0[1-9]|1[0-2])$/, 'Month must be 01-12'),
         }),
-        execute: async ({ gameName }) => {
-          return apiService.getGameManifest(gameName);
+        execute: async ({ gameName, year, month }) => {
+          const manifest = await apiService.getGameManifest(
+            gameName,
+            year,
+            month,
+          );
+          return manifest.val.features;
         },
       }),
       // fetchDataset: tool({
