@@ -11,6 +11,11 @@ interface GamesResponse {
   };
   msg: string;
 }
+interface GameManifestResponse {
+  type: string;
+  val: GameManifest;
+  msg: string;
+}
 interface DatasetsResponse {
   type: string;
   val: {
@@ -54,6 +59,12 @@ const apiService = {
       `${BASE_URL}/games/${gameId}/datasets/${year}/${month}/${level}`,
     );
     return response.data as DatasetResponse;
+  },
+  getGameManifest: async (gameId: string, year: string, month: string) => {
+    const response = await axios.get(
+      `${BASE_URL}/games/${gameId}/datasets/${year}/${month}/manifest`,
+    );
+    return response.data as GameManifestResponse;
   },
 };
 
