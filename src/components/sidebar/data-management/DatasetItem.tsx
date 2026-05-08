@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import Select from '../../layout/select/Select';
 import useDataStore from '../../../store/useDataStore';
 import DatasetFilter from './DatasetFilter';
+import Input from '../../layout/Input';
 
 interface DatasetItemProps {
   dataset: GameData;
@@ -115,6 +116,7 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
   };
 
   const ItemDetails = () => {
+    const [searchFeature, setSearchFeature] = useState('');
     return (
       <div className="w-full mt-2 px-4">
         <hr className="border-gray-200 my-2" />
@@ -123,39 +125,53 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
 
         <hr className="border-gray-200 my-2" />
         <div className="font-bold text-sm text-gray-800 p-2">Features</div>
+        <div className="px-1 pb-2">
+          <Input
+            placeholder="Search..."
+            value={searchFeature}
+            onChange={(value) => setSearchFeature(value)}
+            debounce
+          />
+        </div>
         <div>
-          {displayFeatures.map(
-            ({
-              displayName,
-              relatedFeatureKeys,
-              sampleFeatureKey,
-              columnType,
-              isIterated,
-            }) => (
-              <div
-                className="grid grid-cols-4 gap-2 items-center px-2 py-1 w-full hover:bg-gray-100 rounded-md transition-all duration-200"
-                key={displayName}
-              >
-                <div className="text-sm col-span-3">
-                  {displayName}
-                  {isIterated && (
-                    <span className="ml-1 text-xs text-gray-500">
-                      (iterated)
-                    </span>
-                  )}
+          {displayFeatures
+            .filter((feature) =>
+              feature.displayName
+                .toLowerCase()
+                .includes(searchFeature.toLowerCase()),
+            )
+            .map(
+              ({
+                displayName,
+                relatedFeatureKeys,
+                sampleFeatureKey,
+                columnType,
+                isIterated,
+              }) => (
+                <div
+                  className="grid grid-cols-4 gap-2 items-center px-2 py-1 w-full hover:bg-gray-100 rounded-md transition-all duration-200"
+                  key={displayName}
+                >
+                  <div className="text-sm col-span-3">
+                    {displayName}
+                    {isIterated && (
+                      <span className="ml-1 text-xs text-gray-500">
+                        (iterated)
+                      </span>
+                    )}
+                  </div>
+                  <Select
+                    value={columnType ?? ''}
+                    onChange={(value) => {
+                      relatedFeatureKeys.forEach((featureKey) => {
+                        updateDatasetColumnType(dataset.id, featureKey, value);
+                      });
+                    }}
+                    options={getColumnTypeOptions(sampleFeatureKey)}
+                  />
                 </div>
-                <Select
-                  value={columnType ?? ''}
-                  onChange={(value) => {
-                    relatedFeatureKeys.forEach((featureKey) => {
-                      updateDatasetColumnType(dataset.id, featureKey, value);
-                    });
-                  }}
-                  options={getColumnTypeOptions(sampleFeatureKey)}
-                />
-              </div>
-            ),
-          )}
+              ),
+            )}
         </div>
       </div>
     );

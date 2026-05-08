@@ -27,7 +27,6 @@ declare global {
       filterCount: number;
     };
   }
-
   type ColumnType =
     | 'Categorical'
     | 'Numeric'

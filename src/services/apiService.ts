@@ -40,6 +40,12 @@ export interface DatasetResponse {
   msg: string;
 }
 
+interface GameManifestResponse {
+  type: string;
+  val: GameManifest;
+  msg: string;
+}
+
 const apiService = {
   getGames: async () => {
     const response = await axios.get(`${BASE_URL}/games`);

@@ -6,11 +6,25 @@ import { applyFilters } from '../components/sidebar/data-management/filterUtils'
 interface DataStore {
   // states
   datasets: Record<string, GameData>;
+  gameManifests: {
+    [gameId: string]: { [year: string]: { [month: string]: GameManifest } };
+  };
   hasHydrated: boolean;
   // actions
   addDataset: (dataset: GameData) => void;
+  getGameManifest: (
+    gameId: string,
+    year: string,
+    month: string,
+  ) => GameManifest | undefined;
   removeDataset: (id: string) => void;
   getDatasetByID: (id: string) => GameData | undefined;
+  addGameManifest: (
+    gameId: string,
+    year: string,
+    month: string,
+    manifest: GameManifest,
+  ) => void;
   getFilteredDataset: (id: string) => GameData | undefined;
   hasDataset: (id: string) => boolean;
   lookupDatasets: (
@@ -95,12 +109,32 @@ const useDataStore = create<DataStore>()(
     (set, get) => ({
       // states
       datasets: {},
+      gameManifests: {},
       hasHydrated: false,
       // actions
       addDataset: (dataset: GameData) => {
         console.log('➕ Adding dataset:', dataset.id);
         set((state) => ({
           datasets: { ...state.datasets, [dataset.id]: dataset },
+        }));
+      },
+      addGameManifest: (
+        gameId: string,
+        year: string,
+        month: string,
+        manifest: GameManifest,
+      ) => {
+        set((state) => ({
+          gameManifests: {
+            ...state.gameManifests,
+            [gameId]: {
+              ...state.gameManifests[gameId],
+              [year]: {
+                ...state.gameManifests[gameId][year],
+                [month]: manifest,
+              },
+            },
+          },
         }));
       },
       removeDataset: (id: string) => {
@@ -112,6 +146,8 @@ const useDataStore = create<DataStore>()(
         }));
       },
       getDatasetByID: (id: string) => get().datasets[id],
+      getGameManifest: (gameId: string, year: string, month: string) =>
+        get().gameManifests[gameId][year][month],
       getFilteredDataset: (id: string) => {
         const dataset = get().datasets[id];
         if (!dataset) return undefined;

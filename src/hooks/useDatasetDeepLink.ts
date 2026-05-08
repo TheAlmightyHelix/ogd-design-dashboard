@@ -12,14 +12,24 @@ export interface UseDatasetDeepLinkResult {
   error: Error | null;
 }
 
+/**
+ * This hook is used to deep link to a dataset.
+ * It will add the dataset to the data store and create a new layout if needed.
+ * It will also update the chart config to use the new dataset.
+ * @param urlParams - The URL parameters from the deep link.
+ * @returns The status and error of the deep link.
+ */
 export function useDatasetDeepLink(
   urlParams: DatasetUrlParams | null,
 ): UseDatasetDeepLinkResult {
   const [status, setStatus] = useState<DeepLinkStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
   const hasProcessedRef = useRef(false);
-
-  const { addDataset, hasDataset, hasHydrated: dataStoreHydrated } = useDataStore();
+  const {
+    addDataset,
+    hasDataset,
+    hasHydrated: dataStoreHydrated,
+  } = useDataStore();
   const {
     layouts,
     currentLayout,

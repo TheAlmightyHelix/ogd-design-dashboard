@@ -13,7 +13,7 @@ import { X } from 'lucide-react';
 import { trackEvent } from '../../../lib/analytics';
 
 const DatasetAPIPicker = () => {
-  const { addDataset, hasDataset } = useDataStore();
+  const { addDataset, hasDataset, addGameManifest } = useDataStore();
   const [isOpen, setIsOpen] = useState(false);
   const {
     data: games,
@@ -98,11 +98,32 @@ const DatasetAPIPicker = () => {
     },
   });
 
+  const importGameManifestMutation = useMutation({
+    mutationFn: ({ game, dataset }: { game: string; dataset: string }) =>
+      api.getGameManifest(game, dataset.split('/')[1], dataset.split('/')[0]),
+    onSuccess: (responseBody, variables) => {
+      if (responseBody) {
+        const manifest = responseBody.val;
+        addGameManifest(
+          variables.game,
+          variables.dataset.split('/')[1],
+          variables.dataset.split('/')[0],
+          manifest,
+        );
+        console.log(manifest);
+      }
+    },
+  });
+
   function handleImportDataset(level: 'population' | 'player' | 'session') {
     if (!selectedGame || !selectedDataset) return;
     setImportingLevels((prev) => new Set(prev).add(level));
     importDatasetMutation.mutate({
       level,
+      game: selectedGame,
+      dataset: selectedDataset,
+    });
+    importGameManifestMutation.mutate({
       game: selectedGame,
       dataset: selectedDataset,
     });
