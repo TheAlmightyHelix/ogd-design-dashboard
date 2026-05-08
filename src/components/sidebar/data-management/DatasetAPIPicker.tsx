@@ -106,8 +106,8 @@ const DatasetAPIPicker = () => {
         const manifest = responseBody.val;
         addGameManifest(
           variables.game,
-          variables.dataset.split('/')[1],
           variables.dataset.split('/')[0],
+          variables.dataset.split('/')[1],
           manifest,
         );
         console.log(manifest);
