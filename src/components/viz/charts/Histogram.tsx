@@ -191,7 +191,7 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .range([height, 0]);
 
       const BAR_GAP = 1;
-      const HIGHLIGHT = '#ff8e38';
+      const HIGHLIGHT = 'var(--color-secondary)';
       const DIMMED = '#d1d5db';
 
       // Add bars (with partial fill when bins span filter thresholds)
@@ -268,8 +268,8 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
           const binSpan = binMax - binMin;
           for (const seg of inSegments) {
             const segLeft =
-              barLeft + barWidth * (seg.start - binMin) / binSpan;
-            const segWidth = barWidth * (seg.end - seg.start) / binSpan;
+              barLeft + (barWidth * (seg.start - binMin)) / binSpan;
+            const segWidth = (barWidth * (seg.end - seg.start)) / binSpan;
             g.append('rect')
               .attr('class', 'bar bar-segment')
               .attr('x', segLeft)

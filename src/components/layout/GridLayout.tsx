@@ -211,7 +211,7 @@ const GridLayout: React.FC = () => {
           {currentLayout && layouts[currentLayout]?.name}
         </div>
         <button
-          className="inline-flex items-center justify-center px-4 py-2 bg-blue-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm"
+          className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer shadow hover:bg-primary/80 transition-colors text-sm"
           onClick={addChart}
           type="button"
         >
@@ -219,7 +219,7 @@ const GridLayout: React.FC = () => {
           Add Chart
         </button>
         <button
-          className="inline-flex items-center justify-center px-4 py-2 bg-gray-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-gray-500 transition-colors text-sm"
+          className="inline-flex items-center justify-center px-4 py-2  text-primary border-1 border-primary rounded-md font-medium cursor-pointer shadow hover:bg-primary/5 transition-colors text-sm"
           onClick={() => setEditConfigMode(!editConfigMode)}
           type="button"
         >

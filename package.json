@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
     "@stdlib/stats-base-dists-t-cdf": "^0.2.3",
     "@tailwindcss/postcss": "^4.1.10",
     "@tanstack/react-query": "^5.90.11",

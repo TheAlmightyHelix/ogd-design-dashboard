@@ -54,7 +54,7 @@ const VizSetup = ({
       viz_type: vizType,
       dataset_id: gameDataIds.join(', '),
     });
-    
+
     if (gameDataIds.length) {
       setContainerMode('viz');
     }
@@ -158,7 +158,7 @@ const VizSetup = ({
           !vizType ||
           (vizType === 'datasetComparison' && !gameDataIds[1])
         }
-        className="px-4 py-2 bg-blue-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+        className="px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer shadow hover:bg-primary/80 transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
         onClick={visualize}
       >
         Apply

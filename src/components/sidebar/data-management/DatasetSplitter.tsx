@@ -236,7 +236,7 @@ const DatasetSplitter = ({
 
         <button
           disabled={!canSplit()}
-          className="inline-flex items-center justify-center px-4 py-2 bg-blue-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer shadow hover:bg-primary/80 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={splitDataset}
         >
           Split

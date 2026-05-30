@@ -1,1 +1,11 @@
+@import '@fontsource-variable/inter/index.css';
 @import 'tailwindcss';
+@theme {
+  --font-sans:
+    'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji';
+  --color-primary: #281d8d;
+  --color-secondary: #ffc42e;
+  /* --color-foreground: #f5f7fa; */
+  --color-accent: #a2ffeb;
+}

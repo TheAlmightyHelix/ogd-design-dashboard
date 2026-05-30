@@ -80,7 +80,7 @@ const LayoutManager = () => {
         <div className="flex gap-2 my-2 justify-between">
           <button
             onClick={handleCreate}
-            className="max-w-sm inline-flex flex-1 items-center justify-center px-4 py-2 bg-blue-400 text-white rounded-md font-medium cursor-pointer shadow hover:bg-blue-500 transition-colors text-sm"
+            className="max-w-sm inline-flex flex-1 items-center justify-center px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer shadow hover:bg-primary/80 transition-colors text-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Dashboard
@@ -94,7 +94,10 @@ const LayoutManager = () => {
             }`}
             onClick={() => {
               setCurrentLayout(id);
-              trackEvent('dashboard_switch', { layout_id: id, layout_name: layout.name });
+              trackEvent('dashboard_switch', {
+                layout_id: id,
+                layout_name: layout.name,
+              });
             }}
           >
             <div className="w-full flex justify-between items-center gap-2">

@@ -192,7 +192,7 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
         .attr('fill', (d) =>
           selectedCategories.length && !selectedCategories.includes(d.value)
             ? '#d1d5db'
-            : '#3b82f6',
+            : 'var(--color-primary)',
         )
         .attr('rx', 2)
         .style('cursor', 'pointer')
