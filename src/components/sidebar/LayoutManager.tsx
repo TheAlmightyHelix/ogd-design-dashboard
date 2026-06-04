@@ -1,4 +1,4 @@
-import { Plus, Save, X, Pencil, Download, Upload } from 'lucide-react';
+import { Plus, Save, X, Pencil, Download } from 'lucide-react';
 import useLayoutStore, {
   DashboardLayoutWithMeta,
 } from '../../store/useLayoutStore';
@@ -89,8 +89,10 @@ const LayoutManager = () => {
         {Object.entries(layouts).map(([id, layout]) => (
           <div
             key={id}
-            className={`p-3 hover:bg-blue-50 rounded-lg border border-gray-100 transition-colors ${
-              currentLayout === id ? 'bg-blue-100' : 'bg-gray-50'
+            className={`p-3 rounded-lg border border-gray-100 transition-colors ${
+              currentLayout === id
+                ? 'bg-primary/20'
+                : 'bg-gray-50 hover:bg-gray-100'
             }`}
             onClick={() => {
               setCurrentLayout(id);
@@ -112,7 +114,7 @@ const LayoutManager = () => {
                     autoFocus={true}
                   />
                   <button
-                    className="text-blue-500 hover:text-blue-700"
+                    className="text-primary hover:text-primary/80"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleRenameSave(id);
@@ -131,21 +133,22 @@ const LayoutManager = () => {
                     </span>
                   </div>
                   <button
-                    className="text-gray-400 hover:text-blue-500 mr-2"
+                    className="text-gray-500 hover:text-primary mr-2"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleExport(layout);
                     }}
+                    title="Export dashboard as JSON"
                   >
                     <Download className="w-4 h-4" />
                   </button>
                   <button
-                    className="text-gray-400 hover:text-blue-500"
+                    className="text-gray-500 hover:text-primary"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleRename(id, layout.name);
                     }}
-                    title="Rename layout"
+                    title="Rename dashboard"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
@@ -157,8 +160,8 @@ const LayoutManager = () => {
                     e.stopPropagation();
                     deleteLayout(id);
                   }}
-                  className="ml-2  text-gray-400 hover:text-red-500 transition-colors"
-                  title="Remove dataset"
+                  className="ml-2 text-gray-500 hover:hover:text-red-500 transition-colors"
+                  title="Remove dashboard"
                 >
                   <X className="w-4 h-4" />
                 </button>

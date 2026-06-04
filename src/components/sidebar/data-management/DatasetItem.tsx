@@ -186,7 +186,7 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
         <div className="flex-1">
           <div className="flex gap-2 items-center">
             <ChevronRight
-              className={`w-4 h-4 hover:text-blue-500 transition-colors ${showDetails && 'rotate-90'}  transition-transform duration-100 `}
+              className={`w-4 h-4 hover:text-primary transition-colors ${showDetails && 'rotate-90'}  transition-transform duration-100 `}
               onClick={() => setShowDetails(!showDetails)}
             />
             <div className="font-medium text-sm text-gray-800 select-none">
@@ -217,14 +217,14 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
         </div>
         <button
           onClick={() => onSplit(dataset.id)}
-          className="ml-2 p-1 text-gray-400 hover:text-blue-500 transition-colors"
+          className="ml-2 p-1 text-gray-500 hover:text-primary transition-colors"
           title="Split dataset"
         >
           <ScissorsLineDashed className="w-4 h-4" />
         </button>
         <button
           onClick={() => onRemove(dataset.id)}
-          className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
+          className="ml-2 p-1 text-gray-500 hover:text-red-500 transition-colors"
           title="Remove dataset"
         >
           <X className="w-4 h-4" />

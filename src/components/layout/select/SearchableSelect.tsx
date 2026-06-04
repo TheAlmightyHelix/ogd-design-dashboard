@@ -155,7 +155,7 @@ const SearchableSelect = ({
             <div className="p-2 border-b border-gray-200">
               <input
                 type="text"
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-primary focus:border-primary"
                 placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -174,7 +174,7 @@ const SearchableSelect = ({
                         Array.isArray(value) &&
                         value.includes(key)) ||
                       (!selectMultiple && value === key)
-                        ? 'bg-blue-50 text-blue-700'
+                        ? 'bg-primary/10 text-primary'
                         : 'text-gray-900'
                     }`}
                     onClick={() => handleSelect(key)}

@@ -54,7 +54,7 @@ const Input = ({
         </label>
       )}
       <input
-        className={`min-w-0 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full px-2 py-1 overflow-hidden text-ellipsis ${variant === 'subtle' ? 'border-none focus:ring-0 focus:border-0 focus:outline-none' : 'bg-gray-50 focus:ring-blue-500 focus:border-blue-500 :bg-gray-700'}`}
+        className={`min-w-0 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full px-2 py-1 overflow-hidden text-ellipsis ${variant === 'subtle' ? 'border-none focus:ring-0 focus:border-0 focus:outline-none' : 'bg-gray-50 focus:ring-primary focus:border-primary :bg-gray-700'}`}
         type="text"
         id={label}
         value={internalValue}

@@ -51,7 +51,7 @@ export const CollapsibleChartConfig: React.FC<CollapsibleChartConfigProps> = ({
         {children}
         <button
           type="button"
-          className="px-2 py-1 flex gap-1 items-center justify-center text-blue-800 hover:text-blue-900 rounded cursor-pointer transition-opacity duration-200 focus:outline-none self-start"
+          className="px-2 py-1 flex gap-1 items-center justify-center text-primary hover:text-primary/80 rounded cursor-pointer transition-opacity duration-200 focus:outline-none self-start"
           onClick={() => setShowConfig(false)}
           title="Hide configuration"
         >
