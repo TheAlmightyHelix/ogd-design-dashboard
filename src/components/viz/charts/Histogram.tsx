@@ -54,6 +54,11 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
     min: number;
     max: number;
   }>(chartId, 'rangeFilter', { min: -Infinity, max: Infinity });
+  const [yAxisMax, setYAxisMax] = useChartOption<number | undefined>(
+    chartId,
+    'yAxisMax',
+    undefined,
+  );
   const { addFilter, removeFilter } = useDataStore();
   const datasetRecord = useDataStore(
     useCallback((state) => state.datasets[dataset.id], [dataset.id]),
@@ -185,10 +190,12 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
       const xScale = d3.scaleLinear().domain(xExtent).range([0, width]);
 
       // Y scale (linear)
-      const yScale = d3
-        .scaleLinear()
-        .domain([0, d3.max(bins, (d) => d.length) || 0])
-        .range([height, 0]);
+      const dataMax = d3.max(bins, (d) => d.length) || 0;
+      const yMax =
+        yAxisMax != null && !Number.isNaN(yAxisMax)
+          ? Math.max(yAxisMax, dataMax)
+          : dataMax;
+      const yScale = d3.scaleLinear().domain([0, yMax]).range([height, 0]);
 
       const BAR_GAP = 1;
       const HIGHLIGHT = 'var(--color-secondary)';
@@ -388,7 +395,15 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .attr('fill', '#6b7280')
         .text(`Mode: ${mode.toFixed(2)}`);
     },
-    [feature, binCount, data, rangeFilter, selectedBins, handleBinToggle],
+    [
+      feature,
+      binCount,
+      data,
+      rangeFilter,
+      selectedBins,
+      handleBinToggle,
+      yAxisMax,
+    ],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
@@ -401,9 +416,9 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
           handleFeatureChange={(value) => setFeature(value)}
           featureOptions={getFeatureOptions()}
         />
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2">
           <Select
-            className="w-full"
+            className="w-full max-w-xs"
             label="Bins"
             helpText="Controls how granularly the data is divided"
             value={binCount.toString()}
@@ -415,36 +430,54 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
               ]),
             )}
           />
-          <Input
-            label="Min"
-            value={
-              rangeFilter.min === -Infinity || rangeFilter.min == null
-                ? ''
-                : rangeFilter.min.toString()
-            }
-            onChange={(value) =>
-              setRangeFilter({
-                ...rangeFilter,
-                min: value === '' ? -Infinity : parseFloat(value),
-              })
-            }
-            debounce
-          />
-          <Input
-            label="Max"
-            value={
-              rangeFilter.max === Infinity || rangeFilter.max == null
-                ? ''
-                : rangeFilter.max.toString()
-            }
-            onChange={(value) =>
-              setRangeFilter({
-                ...rangeFilter,
-                max: value === '' ? Infinity : parseFloat(value),
-              })
-            }
-            debounce
-          />
+          <div className="flex items-end gap-2">
+            <Input
+              label="X min"
+              placeholder="All"
+              value={
+                rangeFilter.min === -Infinity || rangeFilter.min == null
+                  ? ''
+                  : rangeFilter.min.toString()
+              }
+              onChange={(value) =>
+                setRangeFilter({
+                  ...rangeFilter,
+                  min: value === '' ? -Infinity : parseFloat(value),
+                })
+              }
+              debounce
+            />
+            <Input
+              label="X max"
+              placeholder="All"
+              value={
+                rangeFilter.max === Infinity || rangeFilter.max == null
+                  ? ''
+                  : rangeFilter.max.toString()
+              }
+              onChange={(value) =>
+                setRangeFilter({
+                  ...rangeFilter,
+                  max: value === '' ? Infinity : parseFloat(value),
+                })
+              }
+              debounce
+            />
+            <Input
+              label="Y-axis max"
+              placeholder="Auto"
+              value={yAxisMax == null ? '' : yAxisMax.toString()}
+              onChange={(value) => {
+                if (value === '') {
+                  setYAxisMax(undefined);
+                  return;
+                }
+                const parsed = parseInt(value, 10);
+                if (!Number.isNaN(parsed)) setYAxisMax(parsed);
+              }}
+              debounce
+            />
+          </div>
         </div>
       </CollapsibleChartConfig>
 

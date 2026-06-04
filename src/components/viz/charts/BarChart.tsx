@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import * as d3 from 'd3';
 import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 import SearchableSelect from '../../layout/select/SearchableSelect';
+import Input from '../../layout/Input';
 import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
@@ -19,6 +20,11 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
     chartId,
     'filter',
     [],
+  );
+  const [yAxisMax, setYAxisMax] = useChartOption<number | undefined>(
+    chartId,
+    'yAxisMax',
+    undefined,
   );
   const { addFilter, removeFilter } = useDataStore();
   const datasetRecord = useDataStore(
@@ -173,10 +179,12 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
         .padding(0.1);
 
       // Y scale (linear)
-      const yScale = d3
-        .scaleLinear()
-        .domain([0, d3.max(chartData, (d) => d.count) || 0])
-        .range([height, 0]);
+      const dataMax = d3.max(chartData, (d) => d.count) || 0;
+      const yMax =
+        yAxisMax != null && !Number.isNaN(yAxisMax)
+          ? Math.max(yAxisMax, dataMax)
+          : dataMax;
+      const yScale = d3.scaleLinear().domain([0, yMax]).range([height, 0]);
 
       // Add bars
       chartGroup
@@ -270,7 +278,15 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
         .attr('fill', '#374151')
         .text(feature);
     },
-    [feature, data, localFilter, selectedCategories, handleCategoryToggle],
+    [
+      feature,
+      data,
+      localFilter,
+      selectedCategories,
+      handleCategoryToggle,
+      yAxisMax,
+      isOrdinal,
+    ],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
@@ -316,15 +332,32 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
           featureOptions={getFeatureOptions()}
         />
         {feature && (
-          <SearchableSelect
-            className="w-full max-w-sm"
-            label="Categories to include"
-            placeholder="All"
-            value={localFilter}
-            onChange={(value) => setLocalFilter(value)}
-            options={filterOptions}
-            selectMultiple
-          />
+          <>
+            <SearchableSelect
+              className="min-w-0 flex-1"
+              label="Categories to include"
+              placeholder="All"
+              value={localFilter}
+              onChange={(value) => setLocalFilter(value)}
+              options={filterOptions}
+              selectMultiple
+            />
+            <Input
+              className="max-w-3xs shrink-0"
+              label="Y-axis max"
+              placeholder="Auto"
+              value={yAxisMax == null ? '' : yAxisMax.toString()}
+              onChange={(value) => {
+                if (value === '') {
+                  setYAxisMax(undefined);
+                  return;
+                }
+                const parsed = parseInt(value, 10);
+                if (!Number.isNaN(parsed)) setYAxisMax(parsed);
+              }}
+              debounce
+            />
+          </>
         )}
       </CollapsibleChartConfig>
 
