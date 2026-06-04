@@ -80,6 +80,7 @@ const DatasetAPIPicker = () => {
       api.getDataset(game, dataset.split('/')[1], dataset.split('/')[0], level),
     onSuccess: (responseBody, variables) => {
       if (responseBody) {
+        console.log(responseBody);
         const dataset = normalizeApiResponse(
           responseBody,
           variables.game,

@@ -4,7 +4,10 @@ import useDataStore from '../../../store/useDataStore';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import { useCallback, useMemo } from 'react';
-import { parseGraphFeature, type GraphFeature } from '../../../utils/graphFeatureUtils';
+import {
+  parseGraphFeature,
+  type GraphFeature,
+} from '../../../utils/graphFeatureUtils';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface ForceDirectedGraphProps {
@@ -34,7 +37,9 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       nodeTooltip: null as string | null,
     };
     if (feature && data.length > 0) {
-      const parsed = parseGraphFeature((data[0] as Record<string, unknown>)[feature]);
+      const parsed = parseGraphFeature(
+        (data[0] as Record<string, unknown>)[feature],
+      );
       if (parsed) {
         return {
           nodes: parsed.nodes,
