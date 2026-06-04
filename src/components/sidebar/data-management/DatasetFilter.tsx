@@ -59,7 +59,7 @@ export default function DatasetFilter({ dataset }: { dataset: GameData }) {
         {!showAddFilter && (
           <button
             onClick={handleAddFilter}
-            className=" inline-flex items-center justify-center px-3 py-1 border-1 border-primary text-primary rounded-lg font-medium cursor-pointer shadow-sm hover:bg-primary/5 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className=" inline-flex items-center justify-center px-3 py-1 border-1 border-primary text-primary rounded-lg font-medium cursor-pointer hover:bg-primary/5 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Filter

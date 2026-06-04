@@ -172,7 +172,7 @@ const DatasetAPIPicker = () => {
               generateAPIDatasetID(selectedGame, selectedDataset, level),
             )
           }
-          className={`w-full ${isImported ? 'bg-gray-400' : 'bg-primary hover:bg-primary/80'} text-white px-4 py-2 rounded-md font-medium cursor-pointer shadow transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`w-full ${isImported ? 'bg-gray-400' : 'bg-primary hover:bg-primary/80'} text-white px-4 py-2 rounded-md font-medium cursor-pointer transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {isImporting
             ? 'Importing...'
@@ -188,7 +188,7 @@ const DatasetAPIPicker = () => {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer shadow hover:bg-primary/80 transition-colors text-sm"
+        className="w-full inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer hover:bg-primary/80 transition-colors text-sm"
       >
         <Search className="w-4 h-4 mr-2" />
         Browse Datasets

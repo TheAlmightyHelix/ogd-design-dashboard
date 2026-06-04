@@ -80,7 +80,7 @@ const LayoutManager = () => {
         <div className="flex gap-2 my-2 justify-between">
           <button
             onClick={handleCreate}
-            className="max-w-sm inline-flex flex-1 items-center justify-center px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer shadow hover:bg-primary/80 transition-colors text-sm"
+            className="max-w-sm inline-flex flex-1 items-center justify-center px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer hover:bg-primary/80 transition-colors text-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Dashboard
