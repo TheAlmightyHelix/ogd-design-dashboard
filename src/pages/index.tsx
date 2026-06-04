@@ -3,7 +3,6 @@ import GridLayout from '../components/layout/GridLayout';
 import DataSourceList from '../components/sidebar/data-management/DataSourceList';
 import CollapsibleSidePanel from '../components/sidebar/CollapsibleSidePanel';
 import LayoutManager from '../components/sidebar/LayoutManager';
-import FloatingHelpIcon from '../components/layout/FloatingHelpIcon';
 import TopBar from '../components/layout/TopBar';
 import DatasetDeepLinkProvider from '../components/providers/DatasetDeepLinkProvider';
 import { Upload } from 'lucide-react';
@@ -123,9 +122,6 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </CollapsibleSidePanel>
-
-      {/* Floating Help Icon */}
-      <FloatingHelpIcon />
     </DatasetDeepLinkProvider>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { HelpCircle } from 'lucide-react';
 import Dialog from './Dialog';
 
-const FloatingHelpIcon: React.FC = () => {
+const UserGuideDialog: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOpen = () => setIsOpen(true);
@@ -10,11 +10,11 @@ const FloatingHelpIcon: React.FC = () => {
 
   return (
     <>
-      {/* Floating Help Icon */}
       <button
         onClick={handleOpen}
-        className="fixed bottom-6 left-6 z-40 hover:bg-blue-100  rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        aria-label="Open help"
+        className="cursor-pointer"
+        aria-label="How to use the app"
+        title="How to use the app"
       >
         <HelpCircle className="w-6 h-6" />
       </button>
@@ -227,4 +227,4 @@ const FloatingHelpIcon: React.FC = () => {
   );
 };
 
-export default FloatingHelpIcon;
+export default UserGuideDialog;
