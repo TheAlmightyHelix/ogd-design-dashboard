@@ -4,13 +4,18 @@
  */
 
 export function isGraphFeature(value: unknown): boolean {
-  if (typeof value !== 'string') return false;
-  try {
-    const parsed = JSON.parse(value);
-    return ['nodes', 'links', 'encodings'].every((key) => key in parsed);
-  } catch {
-    return false;
+  let parsed: unknown = value;
+  if (typeof value === 'string') {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      return false;
+    }
   }
+  if (parsed === null || typeof parsed !== 'object') return false;
+  return ['nodes', 'links', 'encodings'].every(
+    (key) => key in (parsed as Record<string, unknown>),
+  );
 }
 
 export interface GraphFeature {
@@ -34,8 +39,16 @@ export interface SankeyData {
 export function parseGraphFeature(cellValue: unknown): GraphFeature | null {
   if (!isGraphFeature(cellValue)) return null;
   try {
-    const parsed = JSON.parse(cellValue as string) as GraphFeature;
-    if (!Array.isArray(parsed.nodes) || !Array.isArray(parsed.links) || !parsed.encodings) {
+    const parsed = (
+      typeof cellValue === 'string'
+        ? JSON.parse(cellValue)
+        : cellValue
+    ) as GraphFeature;
+    if (
+      !Array.isArray(parsed.nodes) ||
+      !Array.isArray(parsed.links) ||
+      !parsed.encodings
+    ) {
       return null;
     }
     return parsed;
@@ -62,7 +75,9 @@ export function graphFeatureToSankey(graph: GraphFeature): SankeyData {
     .map((l) => ({
       source: l.source,
       target: l.target,
-      value: Number(l[linkWidth] ?? (l as Record<string, unknown>).link_count ?? 1),
+      value: Number(
+        l[linkWidth] ?? (l as Record<string, unknown>).link_count ?? 1,
+      ),
     }));
 
   return { nodes, links };

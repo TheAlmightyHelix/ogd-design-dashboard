@@ -12,7 +12,8 @@ interface DescriptiveStatisticsProps {
 }
 
 const measures = {
-  count: 'Unique Values',
+  count: 'Count',
+  unique: 'Unique Values',
   mean: 'Mean',
   median: 'Median',
   mode: 'Mode',
@@ -43,7 +44,8 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
       .filter((value) => typeof value === 'number' && !isNaN(value));
 
     // Calculate the mean, median, mode, range, variance, standard deviation, skewness, and kurtosis
-    const count = new Set(values).size;
+    const count = data.length;
+    const unique = new Set(values).size;
     const mean = d3.mean(values)?.toFixed(2);
     const median = d3.median(values);
     const mode = d3.mode(values);
@@ -55,6 +57,7 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
 
     return {
       count,
+      unique,
       mean,
       median,
       mode,

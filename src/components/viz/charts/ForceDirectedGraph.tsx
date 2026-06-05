@@ -4,13 +4,123 @@ import useDataStore from '../../../store/useDataStore';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import { useCallback, useMemo } from 'react';
-import { parseGraphFeature, type GraphFeature } from '../../../utils/graphFeatureUtils';
+import {
+  parseGraphFeature,
+  type GraphFeature,
+} from '../../../utils/graphFeatureUtils';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
 interface ForceDirectedGraphProps {
   dataset: GameData;
   chartId: string;
 }
+
+type LegendSwatch =
+  | 'colorSequential'
+  | 'colorOrdinal'
+  | 'nodeSize'
+  | 'linkWidth'
+  | 'nodeLabel'
+  | 'nodeTooltip'
+  | 'generic';
+
+interface LegendItem {
+  key: string;
+  swatch: LegendSwatch;
+  label: string;
+}
+
+const KNOWN_ENCODING_ORDER = [
+  'nodeLabel',
+  'nodeColor',
+  'nodeSize',
+  'nodeTooltip',
+  'linkWidth',
+] as const;
+
+const ENCODING_DISPLAY_PREFIX: Record<string, string> = {
+  nodeLabel: 'Node label',
+  nodeColor: 'Node color',
+  nodeSize: 'Node size',
+  nodeTooltip: 'Node tooltip',
+  linkWidth: 'Link width',
+};
+
+function isPresentEncodingValue(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function resolveLegendSwatch(
+  encodingKey: string,
+  field: string,
+  firstNode: Record<string, unknown>,
+): LegendSwatch {
+  switch (encodingKey) {
+    case 'nodeColor':
+      return typeof firstNode[field] === 'number'
+        ? 'colorSequential'
+        : 'colorOrdinal';
+    case 'nodeSize':
+      return 'nodeSize';
+    case 'linkWidth':
+      return 'linkWidth';
+    case 'nodeLabel':
+      return 'nodeLabel';
+    case 'nodeTooltip':
+      return 'nodeTooltip';
+    default:
+      return 'generic';
+  }
+}
+
+const ORDINAL_LEGEND_COLORS = [
+  'bg-blue-500',
+  'bg-orange-500',
+  'bg-green-500',
+  'bg-red-500',
+] as const;
+
+const LegendSwatch: React.FC<{ swatch: LegendSwatch }> = ({ swatch }) => {
+  switch (swatch) {
+    case 'colorSequential':
+      return (
+        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-red-500 to-green-500 flex-shrink-0" />
+      );
+    case 'colorOrdinal':
+      return (
+        <div className="w-3 h-3 grid grid-cols-2 gap-0.5 flex-shrink-0">
+          {ORDINAL_LEGEND_COLORS.map((color) => (
+            <div
+              key={color}
+              className={`aspect-square w-full rounded-full ${color}`}
+            />
+          ))}
+        </div>
+      );
+    case 'nodeSize':
+      return <div className="w-3 h-3 rounded-full bg-gray-400 flex-shrink-0" />;
+    case 'linkWidth':
+      return <div className="w-3 h-0.5 bg-gray-400 flex-shrink-0" />;
+    case 'nodeLabel':
+      return (
+        <div className="w-3 h-3 flex flex-col justify-center gap-0.5 flex-shrink-0">
+          <div className="h-px w-full bg-gray-400" />
+          <div className="h-px w-2/3 bg-gray-400" />
+          <div className="h-px w-full bg-gray-400" />
+        </div>
+      );
+    case 'nodeTooltip':
+      return (
+        <div className="w-3 h-3 rounded-full border border-gray-400 flex items-center justify-center text-[8px] leading-none font-bold text-gray-500 flex-shrink-0">
+          i
+        </div>
+      );
+    case 'generic':
+      return (
+        <div className="w-3 h-3 rounded border border-gray-300 flex-shrink-0" />
+      );
+  }
+};
 
 /**
  * ForceDirectedGraph is a chart that displays a graph of a player's progress.
@@ -25,6 +135,15 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
   const data = filteredDataset?.data || [];
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
 
+  const graphCellKey =
+    feature && data.length > 0
+      ? (() => {
+          const cell = (data[0] as Record<string, unknown>)[feature];
+          if (cell === undefined || cell === null) return null;
+          return typeof cell === 'string' ? cell : JSON.stringify(cell);
+        })()
+      : null;
+
   const { nodes, links, encodings } = useMemo(() => {
     const defaultEncodings = {
       nodeLabel: 'id',
@@ -33,8 +152,8 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       nodeSize: null as string | null,
       nodeTooltip: null as string | null,
     };
-    if (feature && data.length > 0) {
-      const parsed = parseGraphFeature((data[0] as Record<string, unknown>)[feature]);
+    if (feature && graphCellKey !== null) {
+      const parsed = parseGraphFeature(graphCellKey);
       if (parsed) {
         return {
           nodes: parsed.nodes,
@@ -48,7 +167,37 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       links: [],
       encodings: defaultEncodings,
     };
-  }, [feature, data]);
+  }, [feature, graphCellKey]);
+
+  const legendItems = useMemo((): LegendItem[] => {
+    if (!feature || nodes.length === 0) return [];
+
+    const firstNode = nodes[0] as Record<string, unknown>;
+    const encodingEntries = encodings as Record<string, unknown>;
+    const knownSet = new Set<string>(KNOWN_ENCODING_ORDER);
+
+    const orderedKeys = [
+      ...KNOWN_ENCODING_ORDER.filter((key) =>
+        isPresentEncodingValue(encodingEntries[key]),
+      ),
+      ...Object.keys(encodingEntries)
+        .filter(
+          (key) =>
+            !knownSet.has(key) && isPresentEncodingValue(encodingEntries[key]),
+        )
+        .sort(),
+    ];
+
+    return orderedKeys.map((key) => {
+      const field = encodingEntries[key] as string;
+      const prefix = ENCODING_DISPLAY_PREFIX[key] ?? key;
+      return {
+        key,
+        swatch: resolveLegendSwatch(key, field, firstNode),
+        label: `${prefix}: ${field}`,
+      };
+    });
+  }, [feature, nodes, encodings]);
 
   const renderChart = useCallback(
     (
@@ -77,11 +226,38 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       // Create a group for all graph elements
       const g = svg.append('g');
 
-      // Create custom tooltip div
+      const chartContainer = svg.node()?.parentElement;
+      if (!chartContainer) return;
+
+      let hideTooltipTimeout: ReturnType<typeof setTimeout> | null = null;
+
+      const showTooltip = (html: string, event: MouseEvent) => {
+        if (hideTooltipTimeout) {
+          clearTimeout(hideTooltipTimeout);
+          hideTooltipTimeout = null;
+        }
+
+        const rect = chartContainer.getBoundingClientRect();
+        tooltip
+          .style('opacity', 1)
+          .html(html)
+          .style('left', `${event.clientX - rect.left + 10}px`)
+          .style('top', `${event.clientY - rect.top - 10}px`);
+      };
+
+      const scheduleHideTooltip = () => {
+        if (hideTooltipTimeout) clearTimeout(hideTooltipTimeout);
+        hideTooltipTimeout = setTimeout(() => {
+          tooltip.style('opacity', 0);
+          hideTooltipTimeout = null;
+        }, 75);
+      };
+
+      // Create custom tooltip div scoped to the chart container
       const tooltip = d3
-        .select('body')
+        .select(chartContainer)
         .append('div')
-        .attr('class', 'tooltip')
+        .attr('class', `force-graph-tooltip-${chartId}`)
         .style('position', 'absolute')
         .style('background', 'rgba(0, 0, 0, 0.8)')
         .style('color', 'white')
@@ -90,7 +266,7 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
         .style('font-size', '12px')
         .style('font-family', 'monospace')
         .style('pointer-events', 'none')
-        .style('z-index', '1000')
+        .style('z-index', '10')
         .style('white-space', 'pre-line')
         .style('opacity', 0);
 
@@ -201,20 +377,16 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
         .attr('fill', 'none')
         .on('mouseover', function (event, d: any) {
           const tooltipContent = `${d.source.id} → ${d.target.id}\nCount: ${d[encodings.linkWidth] || 0}`;
-
-          tooltip
-            .style('opacity', 1)
-            .html(tooltipContent)
-            .style('left', event.pageX + 10 + 'px')
-            .style('top', event.pageY - 10 + 'px');
+          showTooltip(tooltipContent, event);
         })
         .on('mouseout', function () {
-          tooltip.style('opacity', 0);
+          scheduleHideTooltip();
         })
         .on('mousemove', function (event) {
+          const rect = chartContainer.getBoundingClientRect();
           tooltip
-            .style('left', event.pageX + 10 + 'px')
-            .style('top', event.pageY - 10 + 'px');
+            .style('left', `${event.clientX - rect.left + 10}px`)
+            .style('top', `${event.clientY - rect.top - 10}px`);
         });
 
       // Create nodes
@@ -234,20 +406,17 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
         .attr('stroke-width', 1.5)
         .on('mouseover', function (event, d: any) {
           if (encodings.nodeTooltip) {
-            tooltip
-              .style('opacity', 1)
-              .html(d[encodings.nodeTooltip])
-              .style('left', event.pageX + 10 + 'px')
-              .style('top', event.pageY - 10 + 'px');
+            showTooltip(String(d[encodings.nodeTooltip] ?? ''), event);
           }
         })
         .on('mouseout', function () {
-          tooltip.style('opacity', 0);
+          scheduleHideTooltip();
         })
         .on('mousemove', function (event) {
+          const rect = chartContainer.getBoundingClientRect();
           tooltip
-            .style('left', event.pageX + 10 + 'px')
-            .style('top', event.pageY - 10 + 'px');
+            .style('left', `${event.clientX - rect.left + 10}px`)
+            .style('top', `${event.clientY - rect.top - 10}px`);
         });
 
       // Create node labels
@@ -293,6 +462,10 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
           .attr('y', (d: any) => d.y);
       });
 
+      simulation.on('end', () => {
+        simulation.stop();
+      });
+
       // Drag functions
       function dragstarted(event: any, d: any) {
         if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -314,11 +487,13 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       // Return cleanup function to stop simulation when component unmounts or dimensions change
       return () => {
         simulation.stop();
-        // Remove custom tooltip
-        d3.selectAll('.tooltip').remove();
+        if (hideTooltipTimeout) clearTimeout(hideTooltipTimeout);
+        d3.select(chartContainer)
+          .select(`.force-graph-tooltip-${chartId}`)
+          .remove();
       };
     },
-    [nodes, links, encodings],
+    [nodes, links, encodings, feature, chartId],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
@@ -351,6 +526,18 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       </CollapsibleChartConfig>
       <div ref={containerRef} className="flex-1 min-h-0 relative">
         <svg ref={svgRef} className="w-full h-full" />
+        {legendItems.length > 0 && (
+          <div className="absolute bottom-0 right-0 bg-white/90 backdrop-blur-sm rounded-lg p-3 text-xs">
+            <div className="flex flex-col gap-1.5">
+              {legendItems.map((item) => (
+                <div key={item.key} className="flex items-center gap-2">
+                  <LegendSwatch swatch={item.swatch} />
+                  <span className="text-gray-600">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
