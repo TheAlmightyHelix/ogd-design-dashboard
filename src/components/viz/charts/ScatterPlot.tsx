@@ -156,7 +156,7 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
         .attr('cx', (d) => xScale((d as Record<string, any>)[xFeature]))
         .attr('cy', (d) => yScale((d as Record<string, any>)[yFeature]))
         .attr('r', 4)
-        .attr('fill', '#3b82f6')
+        .attr('fill', '#281d8d')
         .attr('opacity', 0.7);
 
       // Add regression line

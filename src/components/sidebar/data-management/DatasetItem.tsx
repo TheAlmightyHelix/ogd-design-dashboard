@@ -1,10 +1,10 @@
 import { Filter, ChevronRight, ScissorsLineDashed, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import Input from '../../layout/Input';
 import Select from '../../layout/select/Select';
 import useDataStore from '../../../store/useDataStore';
 import { getFeatureDescriptionsForDataset } from '../../../lib/manifestUtils';
 import DatasetFilter from './DatasetFilter';
-import Input from '../../layout/Input';
 
 interface DatasetItemProps {
   dataset: GameData;
@@ -14,6 +14,7 @@ interface DatasetItemProps {
 
 const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [featureSearch, setFeatureSearch] = useState('');
   const { updateDatasetColumnType, getFilteredDataset } = useDataStore();
   const featureDescriptions = useDataStore((state) =>
     getFeatureDescriptionsForDataset(state.gameManifests, dataset),
@@ -97,6 +98,14 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
 
     return features;
   }, [dataset.columnTypes, iteratedFeatureMap]);
+
+  const filteredDisplayFeatures = useMemo(() => {
+    const q = featureSearch.trim().toLowerCase();
+    if (!q) return displayFeatures;
+    return displayFeatures.filter((f) =>
+      f.displayName.toLowerCase().includes(q),
+    );
+  }, [displayFeatures, featureSearch]);
 
   const getColumnTypeOptions = (feature: string) => {
     if (feature.includes('PlayerProgression')) {

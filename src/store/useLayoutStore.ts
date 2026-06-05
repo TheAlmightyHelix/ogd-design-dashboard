@@ -41,6 +41,13 @@ interface LayoutState {
   setChartTitle: (chartId: string, title: string) => void;
   getLayoutIdByName: (name: string) => string | undefined;
   updateLayoutName: (id: string, name: string) => void;
+  createNamedLayout: (name: string) => string;
+  applyDashboard: (
+    layoutId: string,
+    layout: Layout[],
+    charts: Record<string, ChartConfig>,
+    name?: string,
+  ) => void;
   serializeLayout: (layout: DashboardLayoutWithMeta) => string;
   loadLayout: (serializedLayout: string) => DashboardLayoutWithMeta;
 }
@@ -180,6 +187,38 @@ const useLayoutStore = create<LayoutState>()(
               [id]: {
                 ...layout,
                 name,
+              },
+            },
+          };
+        });
+      },
+      createNamedLayout: (name: string) => {
+        const id = uuidv4();
+        set((state) => ({
+          layouts: {
+            ...state.layouts,
+            [id]: { id, name, layout: [], charts: {} },
+          },
+        }));
+        return id;
+      },
+      applyDashboard: (
+        layoutId: string,
+        layout: Layout[],
+        charts: Record<string, ChartConfig>,
+        name?: string,
+      ) => {
+        set((state) => {
+          const existing = state.layouts[layoutId];
+          if (!existing) return state;
+          return {
+            layouts: {
+              ...state.layouts,
+              [layoutId]: {
+                ...existing,
+                name: name ?? existing.name,
+                layout,
+                charts,
               },
             },
           };

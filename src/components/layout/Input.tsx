@@ -6,6 +6,7 @@ interface InputProps {
   label?: string;
   value: string;
   onChange: (value: string) => void;
+  onEnter?: () => void;
   placeholder?: string;
   debounce?: boolean;
   autoFocus?: boolean;
@@ -17,17 +18,26 @@ const Input = ({
   label,
   value,
   onChange,
+  onEnter,
   placeholder,
   debounce = false,
   autoFocus = false,
   variant = 'default',
 }: InputProps) => {
   const [internalValue, setInternalValue] = useState(value);
+  const [isFocused, setIsFocused] = useState(false);
 
-  // Sync internal value with prop when parent changes it
+  // Sync from parent when not focused; while focused, parent value can lag (e.g. debounce) — syncing would reset the caret.
+  // Exception: parent-driven clear (e.g. submit) must still empty the field while focus stays on the input.
   useEffect(() => {
-    setInternalValue(value);
-  }, [value]);
+    if (!isFocused) {
+      setInternalValue(value);
+      return;
+    }
+    if (value === '') {
+      setInternalValue('');
+    }
+  }, [value, isFocused]);
 
   // Debounce only user input
   useEffect(() => {
@@ -60,8 +70,17 @@ const Input = ({
         value={internalValue}
         placeholder={placeholder ?? 'Type...'}
         onChange={(e) => setInternalValue(e.target.value)}
-        onBlur={() => onChange(internalValue)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => {
+          onChange(internalValue);
+          setIsFocused(false);
+        }}
         autoFocus={autoFocus}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            onEnter?.();
+          }
+        }}
       />
     </div>
   );

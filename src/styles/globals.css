@@ -1,5 +1,13 @@
 @import '@fontsource-variable/inter/index.css';
 @import 'tailwindcss';
+
+/* Keep page scroll inside the app shell, not on the document */
+html,
+body,
+#__next {
+  height: 100%;
+  overflow: hidden;
+}
 @theme {
   --font-sans:
     'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',

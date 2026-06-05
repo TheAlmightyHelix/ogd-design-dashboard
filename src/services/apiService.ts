@@ -49,18 +49,18 @@ const apiService = {
     const response = await axios.get(`${BASE_URL}/games`);
     return response.data as GamesResponse;
   },
-  getDatasets: async (gameId: string) => {
-    const response = await axios.get(`${BASE_URL}/games/${gameId}/datasets`);
+  getDatasets: async (gameName: string) => {
+    const response = await axios.get(`${BASE_URL}/games/${gameName}/datasets`);
     return response.data as DatasetsResponse;
   },
   getDataset: async (
-    gameId: string,
+    gameName: string,
     month: string,
     year: string,
     level: string,
   ) => {
     const response = await axios.get(
-      `${BASE_URL}/games/${gameId}/datasets/${year}/${month}/${level}`,
+      `${BASE_URL}/games/${gameName}/datasets/${year}/${month}/${level}`,
     );
     return response.data as DatasetResponse;
   },
