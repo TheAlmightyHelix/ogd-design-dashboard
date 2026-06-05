@@ -15,6 +15,113 @@ interface ForceDirectedGraphProps {
   chartId: string;
 }
 
+type LegendSwatch =
+  | 'colorSequential'
+  | 'colorOrdinal'
+  | 'nodeSize'
+  | 'linkWidth'
+  | 'nodeLabel'
+  | 'nodeTooltip'
+  | 'generic';
+
+interface LegendItem {
+  key: string;
+  swatch: LegendSwatch;
+  label: string;
+}
+
+const KNOWN_ENCODING_ORDER = [
+  'nodeLabel',
+  'nodeColor',
+  'nodeSize',
+  'nodeTooltip',
+  'linkWidth',
+] as const;
+
+const ENCODING_DISPLAY_PREFIX: Record<string, string> = {
+  nodeLabel: 'Node label',
+  nodeColor: 'Node color',
+  nodeSize: 'Node size',
+  nodeTooltip: 'Node tooltip',
+  linkWidth: 'Link width',
+};
+
+function isPresentEncodingValue(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function resolveLegendSwatch(
+  encodingKey: string,
+  field: string,
+  firstNode: Record<string, unknown>,
+): LegendSwatch {
+  switch (encodingKey) {
+    case 'nodeColor':
+      return typeof firstNode[field] === 'number'
+        ? 'colorSequential'
+        : 'colorOrdinal';
+    case 'nodeSize':
+      return 'nodeSize';
+    case 'linkWidth':
+      return 'linkWidth';
+    case 'nodeLabel':
+      return 'nodeLabel';
+    case 'nodeTooltip':
+      return 'nodeTooltip';
+    default:
+      return 'generic';
+  }
+}
+
+const ORDINAL_LEGEND_COLORS = [
+  'bg-blue-500',
+  'bg-orange-500',
+  'bg-green-500',
+  'bg-red-500',
+] as const;
+
+const LegendSwatch: React.FC<{ swatch: LegendSwatch }> = ({ swatch }) => {
+  switch (swatch) {
+    case 'colorSequential':
+      return (
+        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-red-500 to-green-500 flex-shrink-0" />
+      );
+    case 'colorOrdinal':
+      return (
+        <div className="w-3 h-3 grid grid-cols-2 gap-0.5 flex-shrink-0">
+          {ORDINAL_LEGEND_COLORS.map((color) => (
+            <div
+              key={color}
+              className={`aspect-square w-full rounded-full ${color}`}
+            />
+          ))}
+        </div>
+      );
+    case 'nodeSize':
+      return <div className="w-3 h-3 rounded-full bg-gray-400 flex-shrink-0" />;
+    case 'linkWidth':
+      return <div className="w-3 h-0.5 bg-gray-400 flex-shrink-0" />;
+    case 'nodeLabel':
+      return (
+        <div className="w-3 h-3 flex flex-col justify-center gap-0.5 flex-shrink-0">
+          <div className="h-px w-full bg-gray-400" />
+          <div className="h-px w-2/3 bg-gray-400" />
+          <div className="h-px w-full bg-gray-400" />
+        </div>
+      );
+    case 'nodeTooltip':
+      return (
+        <div className="w-3 h-3 rounded-full border border-gray-400 flex items-center justify-center text-[8px] leading-none font-bold text-gray-500 flex-shrink-0">
+          i
+        </div>
+      );
+    case 'generic':
+      return (
+        <div className="w-3 h-3 rounded border border-gray-300 flex-shrink-0" />
+      );
+  }
+};
+
 /**
  * ForceDirectedGraph is a chart that displays a graph of a player's progress.
  * This chart type is only compatible with the 'PlayerProgression' feature and its subfeatures in the dataset.
@@ -61,6 +168,36 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       encodings: defaultEncodings,
     };
   }, [feature, graphCellKey]);
+
+  const legendItems = useMemo((): LegendItem[] => {
+    if (!feature || nodes.length === 0) return [];
+
+    const firstNode = nodes[0] as Record<string, unknown>;
+    const encodingEntries = encodings as Record<string, unknown>;
+    const knownSet = new Set<string>(KNOWN_ENCODING_ORDER);
+
+    const orderedKeys = [
+      ...KNOWN_ENCODING_ORDER.filter((key) =>
+        isPresentEncodingValue(encodingEntries[key]),
+      ),
+      ...Object.keys(encodingEntries)
+        .filter(
+          (key) =>
+            !knownSet.has(key) && isPresentEncodingValue(encodingEntries[key]),
+        )
+        .sort(),
+    ];
+
+    return orderedKeys.map((key) => {
+      const field = encodingEntries[key] as string;
+      const prefix = ENCODING_DISPLAY_PREFIX[key] ?? key;
+      return {
+        key,
+        swatch: resolveLegendSwatch(key, field, firstNode),
+        label: `${prefix}: ${field}`,
+      };
+    });
+  }, [feature, nodes, encodings]);
 
   const renderChart = useCallback(
     (
@@ -389,6 +526,18 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       </CollapsibleChartConfig>
       <div ref={containerRef} className="flex-1 min-h-0 relative">
         <svg ref={svgRef} className="w-full h-full" />
+        {legendItems.length > 0 && (
+          <div className="absolute bottom-0 right-0 bg-white/90 backdrop-blur-sm rounded-lg p-3 text-xs">
+            <div className="flex flex-col gap-1.5">
+              {legendItems.map((item) => (
+                <div key={item.key} className="flex items-center gap-2">
+                  <LegendSwatch swatch={item.swatch} />
+                  <span className="text-gray-600">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
