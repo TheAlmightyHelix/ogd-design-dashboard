@@ -28,6 +28,15 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
   const data = filteredDataset?.data || [];
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
 
+  const graphCellKey =
+    feature && data.length > 0
+      ? (() => {
+          const cell = (data[0] as Record<string, unknown>)[feature];
+          if (cell === undefined || cell === null) return null;
+          return typeof cell === 'string' ? cell : JSON.stringify(cell);
+        })()
+      : null;
+
   const { nodes, links, encodings } = useMemo(() => {
     const defaultEncodings = {
       nodeLabel: 'id',
@@ -36,10 +45,8 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       nodeSize: null as string | null,
       nodeTooltip: null as string | null,
     };
-    if (feature && data.length > 0) {
-      const parsed = parseGraphFeature(
-        (data[0] as Record<string, unknown>)[feature],
-      );
+    if (feature && graphCellKey !== null) {
+      const parsed = parseGraphFeature(graphCellKey);
       if (parsed) {
         return {
           nodes: parsed.nodes,
@@ -53,7 +60,7 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       links: [],
       encodings: defaultEncodings,
     };
-  }, [feature, data]);
+  }, [feature, graphCellKey]);
 
   const renderChart = useCallback(
     (
@@ -82,11 +89,38 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       // Create a group for all graph elements
       const g = svg.append('g');
 
-      // Create custom tooltip div
+      const chartContainer = svg.node()?.parentElement;
+      if (!chartContainer) return;
+
+      let hideTooltipTimeout: ReturnType<typeof setTimeout> | null = null;
+
+      const showTooltip = (html: string, event: MouseEvent) => {
+        if (hideTooltipTimeout) {
+          clearTimeout(hideTooltipTimeout);
+          hideTooltipTimeout = null;
+        }
+
+        const rect = chartContainer.getBoundingClientRect();
+        tooltip
+          .style('opacity', 1)
+          .html(html)
+          .style('left', `${event.clientX - rect.left + 10}px`)
+          .style('top', `${event.clientY - rect.top - 10}px`);
+      };
+
+      const scheduleHideTooltip = () => {
+        if (hideTooltipTimeout) clearTimeout(hideTooltipTimeout);
+        hideTooltipTimeout = setTimeout(() => {
+          tooltip.style('opacity', 0);
+          hideTooltipTimeout = null;
+        }, 75);
+      };
+
+      // Create custom tooltip div scoped to the chart container
       const tooltip = d3
-        .select('body')
+        .select(chartContainer)
         .append('div')
-        .attr('class', 'tooltip')
+        .attr('class', `force-graph-tooltip-${chartId}`)
         .style('position', 'absolute')
         .style('background', 'rgba(0, 0, 0, 0.8)')
         .style('color', 'white')
@@ -95,7 +129,7 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
         .style('font-size', '12px')
         .style('font-family', 'monospace')
         .style('pointer-events', 'none')
-        .style('z-index', '1000')
+        .style('z-index', '10')
         .style('white-space', 'pre-line')
         .style('opacity', 0);
 
@@ -206,20 +240,16 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
         .attr('fill', 'none')
         .on('mouseover', function (event, d: any) {
           const tooltipContent = `${d.source.id} → ${d.target.id}\nCount: ${d[encodings.linkWidth] || 0}`;
-
-          tooltip
-            .style('opacity', 1)
-            .html(tooltipContent)
-            .style('left', event.pageX + 10 + 'px')
-            .style('top', event.pageY - 10 + 'px');
+          showTooltip(tooltipContent, event);
         })
         .on('mouseout', function () {
-          tooltip.style('opacity', 0);
+          scheduleHideTooltip();
         })
         .on('mousemove', function (event) {
+          const rect = chartContainer.getBoundingClientRect();
           tooltip
-            .style('left', event.pageX + 10 + 'px')
-            .style('top', event.pageY - 10 + 'px');
+            .style('left', `${event.clientX - rect.left + 10}px`)
+            .style('top', `${event.clientY - rect.top - 10}px`);
         });
 
       // Create nodes
@@ -239,20 +269,17 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
         .attr('stroke-width', 1.5)
         .on('mouseover', function (event, d: any) {
           if (encodings.nodeTooltip) {
-            tooltip
-              .style('opacity', 1)
-              .html(d[encodings.nodeTooltip])
-              .style('left', event.pageX + 10 + 'px')
-              .style('top', event.pageY - 10 + 'px');
+            showTooltip(String(d[encodings.nodeTooltip] ?? ''), event);
           }
         })
         .on('mouseout', function () {
-          tooltip.style('opacity', 0);
+          scheduleHideTooltip();
         })
         .on('mousemove', function (event) {
+          const rect = chartContainer.getBoundingClientRect();
           tooltip
-            .style('left', event.pageX + 10 + 'px')
-            .style('top', event.pageY - 10 + 'px');
+            .style('left', `${event.clientX - rect.left + 10}px`)
+            .style('top', `${event.clientY - rect.top - 10}px`);
         });
 
       // Create node labels
@@ -298,6 +325,10 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
           .attr('y', (d: any) => d.y);
       });
 
+      simulation.on('end', () => {
+        simulation.stop();
+      });
+
       // Drag functions
       function dragstarted(event: any, d: any) {
         if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -319,11 +350,13 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       // Return cleanup function to stop simulation when component unmounts or dimensions change
       return () => {
         simulation.stop();
-        // Remove custom tooltip
-        d3.selectAll('.tooltip').remove();
+        if (hideTooltipTimeout) clearTimeout(hideTooltipTimeout);
+        d3.select(chartContainer)
+          .select(`.force-graph-tooltip-${chartId}`)
+          .remove();
       };
     },
-    [nodes, links, encodings],
+    [nodes, links, encodings, feature, chartId],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
