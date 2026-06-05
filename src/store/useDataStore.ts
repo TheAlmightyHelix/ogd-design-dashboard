@@ -2,13 +2,12 @@ import { create } from 'zustand';
 import { persist, PersistStorage } from 'zustand/middleware';
 import { openDB } from 'idb';
 import { applyFilters } from '../components/sidebar/data-management/filterUtils';
+import { removeOrphanedManifestForDataset, type GameManifests } from '../lib/manifestUtils';
 
 interface DataStore {
   // states
   datasets: Record<string, GameData>;
-  gameManifests: {
-    [gameId: string]: { [year: string]: { [month: string]: GameManifest } };
-  };
+  gameManifests: GameManifests;
   hasHydrated: boolean;
   // actions
   addDataset: (dataset: GameData) => void;
@@ -141,11 +140,23 @@ const useDataStore = create<DataStore>()(
       },
       removeDataset: (id: string) => {
         console.log('➖ Removing dataset:', id);
-        set((state) => ({
-          datasets: Object.fromEntries(
+        set((state) => {
+          const removedDataset = state.datasets[id];
+          if (!removedDataset) return state;
+
+          const datasets = Object.fromEntries(
             Object.entries(state.datasets).filter(([key]) => key !== id),
-          ) as Record<string, GameData>,
-        }));
+          ) as Record<string, GameData>;
+
+          return {
+            datasets,
+            gameManifests: removeOrphanedManifestForDataset(
+              state.gameManifests,
+              datasets,
+              removedDataset,
+            ),
+          };
+        });
       },
       getDatasetByID: (id: string) => get().datasets[id],
       getGameManifest: (gameId: string, year: string, month: string) =>

@@ -2,6 +2,7 @@ import { Filter, ChevronRight, ScissorsLineDashed, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import Select from '../../layout/select/Select';
 import useDataStore from '../../../store/useDataStore';
+import { getFeatureDescriptionsForDataset } from '../../../lib/manifestUtils';
 import DatasetFilter from './DatasetFilter';
 import Input from '../../layout/Input';
 
@@ -14,6 +15,9 @@ interface DatasetItemProps {
 const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const { updateDatasetColumnType, getFilteredDataset } = useDataStore();
+  const featureDescriptions = useDataStore((state) =>
+    getFeatureDescriptionsForDataset(state.gameManifests, dataset),
+  );
   const filteredDataset = getFilteredDataset(dataset.id);
 
   const iteratedFeatureMap = useMemo(() => {
@@ -135,11 +139,15 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
         </div>
         <div>
           {displayFeatures
-            .filter((feature) =>
-              feature.displayName
-                .toLowerCase()
-                .includes(searchFeature.toLowerCase()),
-            )
+            .filter((feature) => {
+              const query = searchFeature.toLowerCase();
+              const description =
+                featureDescriptions[feature.displayName]?.toLowerCase() ?? '';
+              return (
+                feature.displayName.toLowerCase().includes(query) ||
+                description.includes(query)
+              );
+            })
             .map(
               ({
                 displayName,
@@ -152,12 +160,19 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
                   className="grid grid-cols-4 gap-2 items-center px-2 py-1 w-full hover:bg-gray-100 rounded-md transition-all duration-200"
                   key={displayName}
                 >
-                  <div className="text-sm col-span-3">
-                    {displayName}
-                    {isIterated && (
-                      <span className="ml-1 text-xs text-gray-500">
-                        (iterated)
-                      </span>
+                  <div className="col-span-3">
+                    <div className="text-sm">
+                      {displayName}
+                      {isIterated && (
+                        <span className="ml-1 text-xs text-gray-500">
+                          (iterated)
+                        </span>
+                      )}
+                    </div>
+                    {featureDescriptions[displayName] && (
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        {featureDescriptions[displayName]}
+                      </div>
                     )}
                   </div>
                   <Select

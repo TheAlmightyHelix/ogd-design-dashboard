@@ -63,6 +63,6 @@ declare global {
       description: string;
       return_type: string;
       aggregation_levels: string[];
-    }[];
+    }[] | null;
   }
 }
