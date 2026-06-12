@@ -95,6 +95,43 @@ describe('buildDashboardFromRecommendations', () => {
     expect(result.warnings.some((w) => w.includes('Nonexistent'))).toBe(true);
   });
 
+  it('plans force graph for player dataset with graph columns', () => {
+    const graphCell = {
+      nodes: [{ id: 'a' }, { id: 'b' }],
+      links: [{ source: 'a', target: 'b', link_count: 1 }],
+      encodings: { linkWidth: 'link_count' },
+    };
+    const dataset = makeDataset({
+      data: [
+        { PlayerProgression: graphCell },
+        { PlayerProgression: graphCell },
+      ] as unknown as GameData['data'],
+      columnTypes: {
+        PlayerProgression: 'Graph',
+        Score: 'Numeric',
+      },
+      supportedChartTypes: [
+        'bar',
+        'histogram',
+        'scatter',
+        'boxPlot',
+        'descriptiveStatistics',
+        'forceDirectedGraph',
+        'sankey',
+      ],
+    });
+    const result = buildDashboardFromRecommendations(dataset, [
+      {
+        featureName: 'Score',
+        rationale: 'Performance',
+        priority: 'primary',
+      },
+    ]);
+
+    const vizTypes = Object.values(result.charts).map((c) => c.vizType);
+    expect(vizTypes).toContain('forceDirectedGraph');
+  });
+
   it('merges new charts after existing layout items', () => {
     const dataset = makeDataset();
     const built = buildDashboardFromRecommendations(dataset, [

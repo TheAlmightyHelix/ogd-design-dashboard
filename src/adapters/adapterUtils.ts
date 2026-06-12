@@ -69,6 +69,10 @@ export const getSupportedChartTypes = (
     supportedChartTypes.push('scatter');
     supportedChartTypes.push('boxPlot');
     supportedChartTypes.push('datasetComparison');
+    if (forceDirectedGraphSupported) {
+      supportedChartTypes.push('forceDirectedGraph');
+      supportedChartTypes.push('sankey');
+    }
   }
 
   return supportedChartTypes;

@@ -59,7 +59,6 @@ const SUPPORTED_VIZ_TYPES: VizTypeKey[] = [
   'boxPlot',
   'descriptiveStatistics',
   'forceDirectedGraph',
-  'jobGraph',
   'sankey',
 ];
 

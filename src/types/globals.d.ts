@@ -8,7 +8,7 @@ declare global {
   interface GameData {
     id: string;
     game: string;
-    featureLevel: 'population' | 'player' | 'session' | 'unknown';
+    featureLevel: 'population' | 'player' | 'session' | 'unknown'; // population is legacy/read-only
     startDate: string;
     endDate: string;
     OGDVersion: string;
