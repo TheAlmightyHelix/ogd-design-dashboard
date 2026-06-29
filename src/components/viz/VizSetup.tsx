@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
 import useDataStore from '../../store/useDataStore';
 import Select from '../layout/select/Select';
 import { VizType, VizTypeKey } from '../../constants/vizTypes';
@@ -8,7 +7,7 @@ import { trackEvent } from '../../lib/analytics';
 
 interface VizSetupProps {
   gameDataIds: string[];
-  setGameDataIds: (gameDataIds: string[]) => void;
+  setGameDataIds: Dispatch<SetStateAction<string[]>>;
   vizType: VizTypeKey;
   setVizType: (vizType: VizTypeKey) => void;
   setContainerMode: (containerMode: 'settings' | 'viz') => void;
@@ -38,7 +37,11 @@ const VizSetup = ({
     if (supportedChartTypes) {
       setSupportedChartTypes(supportedChartTypes);
     }
-    if (!supportedChartTypes.includes(vizType)) {
+    const hasComparisonPair =
+      vizType === 'datasetComparison' &&
+      gameDataIds.length >= 2 &&
+      Boolean(gameDataIds[1]);
+    if (!supportedChartTypes.includes(vizType) && !hasComparisonPair) {
       setVizType(supportedChartTypes[0]);
     }
     if (!title) {
@@ -47,7 +50,7 @@ const VizSetup = ({
           '',
       );
     }
-  }, [gameDataIds, datasets]);
+  }, [gameDataIds[0], gameDataIds[1], datasets, vizType]);
 
   const visualize = () => {
     trackEvent('chart_applied', {
@@ -75,8 +78,16 @@ const VizSetup = ({
         <Select
           className="w-full"
           label="Dataset"
-          value={gameDataIds[0]}
-          onChange={(value) => setGameDataIds([value as string])}
+          value={gameDataIds[0] ?? ''}
+          onChange={(value) => {
+            const newDataset1 = value as string;
+            setGameDataIds((prev) => {
+              if (!prev[1] || prev[1] === newDataset1) {
+                return [newDataset1];
+              }
+              return [newDataset1, prev[1]];
+            });
+          }}
           options={Object.fromEntries(
             Object.entries(datasets).map(([key]) => [key, key]),
           )}
@@ -121,9 +132,11 @@ const VizSetup = ({
           <Select
             className="w-full"
             label="Dataset 2"
-            value={gameDataIds[1]}
+            value={gameDataIds[1] ?? ''}
             onChange={(value) =>
-              setGameDataIds([gameDataIds[0], value as string])
+              setGameDataIds((prev) =>
+                value ? [prev[0], value as string] : [prev[0]],
+              )
             }
             options={Object.fromEntries(
               Object.entries(datasets).map(([key]) => [key, key]),

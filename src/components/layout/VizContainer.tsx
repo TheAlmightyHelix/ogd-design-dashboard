@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Move, Minus, Copy, Database, Loader2 } from 'lucide-react';
+import { Move, Minus, Copy, Database, Loader2, TriangleAlert } from 'lucide-react';
 import { BarChart } from '../viz/charts/BarChart';
 import { Histogram } from '../viz/charts/Histogram';
 import { ScatterPlot } from '../viz/charts/ScatterPlot';
@@ -169,7 +169,15 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
 
                 if (datasets.length !== 2) {
                   return (
-                    <div>Please select exactly 2 datasets for comparison</div>
+                    <div className="flex flex-col gap-2 p-2 h-full w-full items-center justify-center">
+                      <TriangleAlert className="w-10 h-10 text-orange-300" />
+                      <div className="text-lg font-semibold">
+                        Two datasets required
+                      </div>
+                      <div className="text-sm text-gray-700 text-center">
+                        Please select exactly 2 datasets for comparison
+                      </div>
+                    </div>
                   );
                 }
 
