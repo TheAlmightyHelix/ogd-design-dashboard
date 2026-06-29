@@ -99,7 +99,7 @@ const UserGuideDialog: React.FC = () => {
                     Bar Chart
                   </h4>
                   <p className="text-sm text-gray-600">
-                    Used for textual/categorical data (e.g. Job, Population)
+                    Used for textual/categorical data (e.g. Job, Level)
                   </p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
@@ -144,18 +144,19 @@ const UserGuideDialog: React.FC = () => {
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h4 className="font-semibold text-gray-800 mb-2">
-                    Sankey Diagram
+                    Force Graph
                   </h4>
                   <p className="text-sm text-gray-600">
-                    Used for visualizing player progression and burndown
+                    Used for visualizing player progression across filtered
+                    player or session rows
                   </p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h4 className="font-semibold text-gray-800 mb-2">
-                    Job Graph
+                    Sankey Diagram
                   </h4>
                   <p className="text-sm text-gray-600">
-                    Used for visualizing player progression
+                    Used for visualizing aggregated player progression flows
                   </p>
                 </div>
               </div>
@@ -206,14 +207,26 @@ const UserGuideDialog: React.FC = () => {
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-800">
-                        Population
+                      <td className="border border-gray-300 px-4 py-3 text-gray-500 italic">
+                        (same as above)
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        Graph (e.g. PlayerProgression)
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        Force Graph, Sankey Diagram
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-500">
+                        Population (legacy)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         Any
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Descriptive Statistics, Sankey Diagram, Job Graph
+                        Read-only support for saved layouts only; not available
+                        for new imports
                       </td>
                     </tr>
                   </tbody>

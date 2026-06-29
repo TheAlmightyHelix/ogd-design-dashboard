@@ -5,8 +5,7 @@ import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
 import { useCallback, useMemo } from 'react';
 import {
-  parseGraphFeature,
-  type GraphFeature,
+  aggregateGraphFeatures,
 } from '../../../utils/graphFeatureUtils';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 
@@ -123,8 +122,8 @@ const LegendSwatch: React.FC<{ swatch: LegendSwatch }> = ({ swatch }) => {
 };
 
 /**
- * ForceDirectedGraph is a chart that displays a graph of a player's progress.
- * This chart type is only compatible with the 'PlayerProgression' feature and its subfeatures in the dataset.
+ * ForceDirectedGraph displays player progression as a force-directed graph.
+ * Aggregates GraphFeature data across all filtered rows in the dataset.
  */
 export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
   chartId,
@@ -135,15 +134,6 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
   const data = filteredDataset?.data || [];
   const [feature, setFeature] = useChartOption<string>(chartId, 'feature', '');
 
-  const graphCellKey =
-    feature && data.length > 0
-      ? (() => {
-          const cell = (data[0] as Record<string, unknown>)[feature];
-          if (cell === undefined || cell === null) return null;
-          return typeof cell === 'string' ? cell : JSON.stringify(cell);
-        })()
-      : null;
-
   const { nodes, links, encodings } = useMemo(() => {
     const defaultEncodings = {
       nodeLabel: 'id',
@@ -152,13 +142,13 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       nodeSize: null as string | null,
       nodeTooltip: null as string | null,
     };
-    if (feature && graphCellKey !== null) {
-      const parsed = parseGraphFeature(graphCellKey);
-      if (parsed) {
+    if (feature && data.length > 0) {
+      const aggregated = aggregateGraphFeatures(data, feature);
+      if (aggregated) {
         return {
-          nodes: parsed.nodes,
-          links: parsed.links,
-          encodings: { ...defaultEncodings, ...parsed.encodings },
+          nodes: aggregated.nodes,
+          links: aggregated.links,
+          encodings: { ...defaultEncodings, ...aggregated.encodings },
         };
       }
     }
@@ -167,7 +157,7 @@ export const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({
       links: [],
       encodings: defaultEncodings,
     };
-  }, [feature, graphCellKey]);
+  }, [feature, data]);
 
   const legendItems = useMemo((): LegendItem[] => {
     if (!feature || nodes.length === 0) return [];

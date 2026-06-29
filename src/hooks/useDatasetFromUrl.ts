@@ -32,8 +32,8 @@ export function useDatasetFromUrl(): DatasetUrlParams | null {
     const yearStr = typeof year === 'string' ? year.trim() : '';
     const monthStr = typeof month === 'string' ? month.trim() : '';
 
-    const levelValue = typeof level === 'string' ? level.trim().toLowerCase() : 'population';
-    const resolvedLevel = isValidLevel(levelValue) ? levelValue : 'population';
+    const levelValue = typeof level === 'string' ? level.trim().toLowerCase() : 'player';
+    const resolvedLevel = isValidLevel(levelValue) ? levelValue : 'player';
 
     if (!gameStr || !yearStr || !monthStr) {
       return null;

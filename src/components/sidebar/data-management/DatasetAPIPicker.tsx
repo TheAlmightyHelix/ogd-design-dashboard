@@ -36,8 +36,7 @@ const DatasetAPIPicker = () => {
         (acc, dataset) => {
           if (
             dataset.sessions_file === null &&
-            dataset.players_file === null &&
-            dataset.population_file === null
+            dataset.players_file === null
           ) {
             return acc;
           }
@@ -51,20 +50,17 @@ const DatasetAPIPicker = () => {
           if (dataset.players_file !== null) {
             acc[`${dataset.year}/${dataset.month}`].push('player');
           }
-          if (dataset.population_file !== null) {
-            acc[`${dataset.year}/${dataset.month}`].push('population');
-          }
 
           return acc;
         },
-        {} as Record<string, ('population' | 'player' | 'session')[]>,
+        {} as Record<string, ('player' | 'session')[]>,
       ),
     enabled: !!selectedGame,
   });
 
   const [selectedDataset, setSelectedDataset] = useState<string>('');
   const [importingLevels, setImportingLevels] = useState<
-    Set<'population' | 'player' | 'session'>
+    Set<'player' | 'session'>
   >(new Set());
 
   const importDatasetMutation = useMutation({
@@ -73,7 +69,7 @@ const DatasetAPIPicker = () => {
       game,
       dataset,
     }: {
-      level: 'population' | 'player' | 'session';
+      level: 'player' | 'session';
       game: string;
       dataset: string;
     }) =>
@@ -119,7 +115,7 @@ const DatasetAPIPicker = () => {
     },
   });
 
-  function handleImportDataset(level: 'population' | 'player' | 'session') {
+  function handleImportDataset(level: 'player' | 'session') {
     if (!selectedGame || !selectedDataset) return;
     setImportingLevels((prev) => new Set(prev).add(level));
     importDatasetMutation.mutate({
@@ -141,7 +137,7 @@ const DatasetAPIPicker = () => {
   const DatasetLevelCard = ({
     level,
   }: {
-    level: 'population' | 'player' | 'session';
+    level: 'player' | 'session';
   }) => {
     const isImporting = importingLevels.has(level);
     const isImported = hasDataset(
@@ -155,8 +151,6 @@ const DatasetAPIPicker = () => {
         <div>
           <h3 className="font-semibold">{level.toUpperCase()}</h3>
           <p className="text-sm text-gray-500">
-            {level === 'population' &&
-              'Population level data contains features aggregated across all events.'}
             {level === 'player' &&
               'Player level data contains features for each player.'}
             {level === 'session' &&
@@ -164,9 +158,7 @@ const DatasetAPIPicker = () => {
           </p>
         </div>
         <button
-          onClick={() =>
-            handleImportDataset(level as 'population' | 'player' | 'session')
-          }
+          onClick={() => handleImportDataset(level)}
           disabled={
             isImporting ||
             hasDataset(
@@ -264,7 +256,7 @@ const DatasetAPIPicker = () => {
           {datasets && selectedDataset && (
             <div className="h-full flex flex-col gap-2">
               <h2 className="font-semibold">Available Datasets</h2>
-              <div className="grid grid-cols-3 gap-4 h-full">
+              <div className="grid grid-cols-2 gap-4 h-full">
                 {datasets[selectedDataset].map((level) => {
                   return <DatasetLevelCard key={level} level={level} />;
                 })}

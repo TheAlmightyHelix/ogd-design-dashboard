@@ -3,7 +3,6 @@ import type { Layout } from 'react-grid-layout';
 import { VizTypeKey } from '../../constants/vizTypes';
 import {
   hasGraphFeatureSupport,
-  hasJobGraphSupport,
 } from '../../adapters/adapterUtils';
 import type { ChartConfig } from '../../store/useLayoutStore';
 import type { FeatureRecommendation } from '../ai/schemas';
@@ -87,18 +86,12 @@ function pickVizTypeForColumn(
 ): VizTypeKey | null {
   const supported = dataset.supportedChartTypes;
 
-  if (columnType === 'Graph' && dataset.featureLevel === 'population') {
+  if (
+    columnType === 'Graph' &&
+    (dataset.featureLevel === 'player' || dataset.featureLevel === 'session')
+  ) {
     if (supported.includes('forceDirectedGraph')) return 'forceDirectedGraph';
     if (supported.includes('sankey')) return 'sankey';
-  }
-
-  if (
-    dataset.featureLevel === 'population' &&
-    hasJobGraphSupport(dataset) &&
-    supported.includes('jobGraph')
-  ) {
-    const jobCols = ['ActiveJobs', 'TopJobSwitchDestinations'];
-    if (jobCols.some((j) => column.includes(j))) return 'jobGraph';
   }
 
   if (columnType === 'Categorical' || columnType === 'Ordinal') {
@@ -212,7 +205,8 @@ export function buildDashboardFromRecommendations(
   }
 
   if (
-    dataset.featureLevel === 'population' &&
+    (dataset.featureLevel === 'player' ||
+      dataset.featureLevel === 'session') &&
     hasGraphFeatureSupport(dataset) &&
     !planned.some((p) => p.vizType === 'forceDirectedGraph')
   ) {
@@ -227,19 +221,6 @@ export function buildDashboardFromRecommendations(
       });
       usedColumns.add(graphCol);
     }
-  }
-
-  if (
-    dataset.featureLevel === 'population' &&
-    hasJobGraphSupport(dataset) &&
-    dataset.supportedChartTypes.includes('jobGraph') &&
-    !planned.some((p) => p.vizType === 'jobGraph')
-  ) {
-    planned.push({
-      vizType: 'jobGraph',
-      title: 'Job flow',
-      options: defaultOptionsForVizType('jobGraph', {}),
-    });
   }
 
   for (const { rec, column, columnType } of resolved) {

@@ -75,7 +75,7 @@ const AppChatPanel = () => {
           game: string;
           month: string;
           year: string;
-          level: 'population' | 'player' | 'session';
+          level: 'player' | 'session';
         };
 
         try {

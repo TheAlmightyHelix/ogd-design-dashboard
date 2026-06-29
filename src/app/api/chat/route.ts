@@ -21,7 +21,7 @@ const SYSTEM_PROMPT_BASE = `You are a helpful assistant for the Open Game Data D
 Workflow when helping with research questions:
 1. Use lookupGames and getGameManifest to discover available features for the game and time period.
 2. Use recommendFeatures with researchQuestion, gameName, year, month, and the features array from getGameManifest. Do not add extra fields to the tool input.
-3. Use addDataset to load data if it is not already available (population, player, or session level as appropriate).
+3. Use addDataset to load data if it is not already available (player or session level; population data is deprecated).
 4. After features are recommended and data is loaded, ask the user how they want the charts before calling buildDashboard (see dashboard rules below).
 
 Rules:
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
           game: z.string(),
           month: z.string().regex(/^(0[1-9]|1[0-2])$/, 'Month must be 01-12'),
           year: z.string().regex(/^\d{4}$/, 'Year must be 4 digits'),
-          level: z.enum(['population', 'player', 'session']),
+          level: z.enum(['player', 'session']),
         }),
       }),
       buildDashboard: tool({

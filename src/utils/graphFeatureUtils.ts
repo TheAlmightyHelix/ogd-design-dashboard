@@ -82,3 +82,65 @@ export function graphFeatureToSankey(graph: GraphFeature): SankeyData {
 
   return { nodes, links };
 }
+
+export function aggregateGraphFeatures(
+  rows: object[],
+  featureColumn: string,
+): GraphFeature | null {
+  const nodeMap = new Map<string, { id: string; [key: string]: unknown }>();
+  const linkMap = new Map<
+    string,
+    { source: string; target: string; [key: string]: unknown }
+  >();
+  let encodings: GraphFeature['encodings'] | null = null;
+  let linkWidthKey = 'link_count';
+
+  for (const row of rows) {
+    const cell = (row as Record<string, unknown>)[featureColumn];
+    const graph = parseGraphFeature(cell);
+    if (!graph) continue;
+
+    if (!encodings) {
+      encodings = graph.encodings;
+      linkWidthKey = graph.encodings?.linkWidth ?? 'link_count';
+    }
+
+    for (const node of graph.nodes) {
+      if (!nodeMap.has(node.id)) {
+        nodeMap.set(node.id, { ...node });
+      }
+    }
+
+    for (const link of graph.links) {
+      const key = `${link.source}\0${link.target}`;
+      const linkValue = Number(
+        link[linkWidthKey] ??
+          (link as Record<string, unknown>).link_count ??
+          1,
+      );
+      if (linkMap.has(key)) {
+        const existing = linkMap.get(key)!;
+        const existingValue = Number(
+          existing[linkWidthKey] ??
+            (existing as Record<string, unknown>).link_count ??
+            0,
+        );
+        existing[linkWidthKey] = existingValue + linkValue;
+      } else {
+        linkMap.set(key, {
+          source: link.source,
+          target: link.target,
+          [linkWidthKey]: linkValue,
+        });
+      }
+    }
+  }
+
+  if (!encodings || nodeMap.size === 0) return null;
+
+  return {
+    nodes: Array.from(nodeMap.values()),
+    links: Array.from(linkMap.values()),
+    encodings,
+  };
+}

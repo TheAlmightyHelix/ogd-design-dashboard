@@ -69,10 +69,13 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
           relatedFeatureKeys.find((key) => key.includes('_')) ||
           relatedFeatureKeys[0];
 
+        const relatedTypes = relatedFeatureKeys.map(
+          (key) => dataset.columnTypes[key],
+        );
         const resolvedColumnType =
-          relatedFeatureKeys
-            .map((key) => dataset.columnTypes[key])
-            .find((type) => Boolean(type)) ?? columnType;
+          relatedTypes.find((type) => type === 'Graph') ??
+          relatedTypes.find((type) => Boolean(type)) ??
+          columnType;
 
         features.push({
           displayName: baseFeature,
@@ -103,22 +106,24 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
     );
   }, [displayFeatures, featureSearch]);
 
-  const getColumnTypeOptions = (feature: string) => {
-    if (feature.includes('PlayerProgression')) {
-      return { Graph: 'Graph' };
+  const getColumnTypeOptions = (
+    feature: string,
+    columnType: ColumnType | undefined,
+  ) => {
+    if (columnType === 'Graph') {
+      return { Graph: 'Graph' } as Record<string, ColumnType>;
     }
 
     const permittedTypes = {
       Categorical: 'Categorical',
       Ordinal: 'Ordinal',
-    } as Record<string, string>;
+    } as Record<string, ColumnType>;
 
-    const TSparseResult = typeof (dataset.data[0] as any)[feature];
-    if (TSparseResult === 'number') {
-      return { ...permittedTypes, Numeric: 'Numeric' } as Record<
-        string,
-        ColumnType
-      >;
+    const firstValue = (dataset.data[0] as Record<string, unknown> | undefined)?.[
+      feature
+    ];
+    if (typeof firstValue === 'number') {
+      return { ...permittedTypes, Numeric: 'Numeric' };
     }
 
     return permittedTypes;
@@ -176,7 +181,10 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
                         updateDatasetColumnType(dataset.id, featureKey, value);
                       });
                     }}
-                    options={getColumnTypeOptions(sampleFeatureKey)}
+                    options={getColumnTypeOptions(
+                      sampleFeatureKey,
+                      columnType,
+                    )}
                   />
                 </div>
               ),
