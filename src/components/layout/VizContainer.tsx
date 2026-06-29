@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Move, Minus, Copy, Database, Loader2, TriangleAlert } from 'lucide-react';
+import {
+  Move,
+  Minus,
+  Copy,
+  Database,
+  Loader2,
+  TriangleAlert,
+} from 'lucide-react';
 import { BarChart } from '../viz/charts/BarChart';
 import { Histogram } from '../viz/charts/Histogram';
 import { ScatterPlot } from '../viz/charts/ScatterPlot';
@@ -17,6 +24,12 @@ import useDataStore from '../../store/useDataStore';
 import DatasetNotFound from '../viz/DatasetNotFound';
 import { ErrorBoundary } from './ErrorBoundary';
 import Input from './Input';
+
+const CHART_CONTROL_GROUP_CLASS =
+  'absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-md border border-gray-300 bg-white p-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200';
+
+const CHART_CONTROL_BUTTON_CLASS =
+  'w-6 h-6 rounded flex items-center justify-center hover:bg-gray-100 focus:outline-none';
 
 interface VizContainerProps {
   style?: React.CSSProperties;
@@ -204,16 +217,16 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
         onTouchEnd={onTouchEnd}
       >
         {/* Drag Handle and Control Buttons */}
-        <div className="absolute bottom-2 left-2 h-6 flex items-center justify-start gap-2">
+        <div className={CHART_CONTROL_GROUP_CLASS}>
           <button
-            className="drag-handle w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded flex items-center justify-center cursor-move z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className={`drag-handle ${CHART_CONTROL_BUTTON_CLASS} cursor-move`}
             style={{ pointerEvents: 'auto' }}
             title="Drag to move"
           >
             <Move size={14} className="text-gray-600" />
           </button>
           <button
-            className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded flex items-center justify-center cursor-pointer z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none"
+            className={`${CHART_CONTROL_BUTTON_CLASS} cursor-pointer`}
             onClick={() => onDuplicate(chartId)}
             type="button"
             title="Duplicate chart"
@@ -222,7 +235,7 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
           </button>
           {containerMode === 'viz' && (
             <button
-              className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded flex items-center justify-center cursor-pointer z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none"
+              className={`${CHART_CONTROL_BUTTON_CLASS} cursor-pointer`}
               onClick={() => setContainerMode('settings')}
               type="button"
               title="Change dataset / chart type"
@@ -231,7 +244,7 @@ const VizContainer = React.forwardRef<HTMLDivElement, VizContainerProps>(
             </button>
           )}
           <button
-            className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded flex items-center justify-center cursor-pointer z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none"
+            className={`${CHART_CONTROL_BUTTON_CLASS} cursor-pointer`}
             onClick={() => onRemove(chartId)}
             type="button"
             title="Remove chart"
