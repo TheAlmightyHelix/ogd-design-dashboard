@@ -1,19 +1,54 @@
 import { VizTypeKey } from '../constants/vizTypes';
 import { isGraphFeature } from '../utils/graphFeatureUtils';
 
+function columnHasGraphFeature(
+  extractedData: d3.DSVParsedArray<object>,
+  column: string,
+): boolean {
+  if (!extractedData || typeof extractedData.length !== 'number') {
+    return false;
+  }
+
+  for (let i = 0; i < extractedData.length; i++) {
+    const row = extractedData[i] as Record<string, unknown>;
+    if (isGraphFeature(row[column])) return true;
+  }
+  return false;
+}
+
+function datasetHasGraphFeature(
+  extractedData: d3.DSVParsedArray<object>,
+): boolean {
+  if (!extractedData || typeof extractedData.length !== 'number') {
+    return false;
+  }
+
+  const columns =
+    (extractedData.columns as string[] | undefined) ??
+    (extractedData[0] ? Object.keys(extractedData[0]) : []);
+
+  return columns.some((column) =>
+    columnHasGraphFeature(extractedData, column),
+  );
+}
+
 export const getColumnTypes = (extractedData: d3.DSVParsedArray<object>) => {
   const columnTypes: Record<string, ColumnType> = {};
-  if (Object.hasOwn(extractedData, '0')) {
-    const firstRow = extractedData[0];
-    for (const [key, value] of Object.entries(firstRow)) {
-      if (isGraphFeature(value)) {
-        columnTypes[key] = 'Graph';
-      } else {
-        columnTypes[key] =
-          typeof value === 'number' ? 'Numeric' : 'Categorical';
-      }
+  const columns =
+    (extractedData.columns as string[] | undefined) ??
+    (extractedData[0] ? Object.keys(extractedData[0]) : []);
+  const firstRow = extractedData[0] as Record<string, unknown> | undefined;
+
+  for (const key of columns) {
+    if (columnHasGraphFeature(extractedData, key)) {
+      columnTypes[key] = 'Graph';
+    } else {
+      const firstValue = firstRow?.[key];
+      columnTypes[key] =
+        typeof firstValue === 'number' ? 'Numeric' : 'Categorical';
     }
   }
+
   return columnTypes;
 };
 
@@ -47,9 +82,7 @@ export const getSupportedChartTypes = (
     columns.some((column) => column.includes(subfeature)),
   );
 
-  const forceDirectedGraphSupported = Object.values(extractedData[0]).some(
-    (column) => isGraphFeature(column),
-  );
+  const forceDirectedGraphSupported = datasetHasGraphFeature(extractedData);
 
   if (featureLevel === 'population') {
     if (forceDirectedGraphSupported) {

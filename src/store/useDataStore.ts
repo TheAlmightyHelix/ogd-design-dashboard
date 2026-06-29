@@ -1,7 +1,41 @@
 import { create } from 'zustand';
 import { persist, PersistStorage } from 'zustand/middleware';
 import { openDB } from 'idb';
+import {
+  getColumnTypes,
+  getSupportedChartTypes,
+} from '../adapters/adapterUtils';
 import { applyFilters } from '../components/sidebar/data-management/filterUtils';
+
+function refreshDatasetMetadata(dataset: GameData): GameData {
+  const data = dataset.data as d3.DSVParsedArray<object>;
+  if (!data || typeof data.length !== 'number') {
+    return dataset;
+  }
+
+  return {
+    ...dataset,
+    columnTypes: getColumnTypes(data),
+    supportedChartTypes: getSupportedChartTypes(data, dataset.featureLevel),
+  };
+}
+
+function safeRefreshPersistedDatasets(
+  datasets: Record<string, GameData> | undefined,
+): Record<string, GameData> {
+  if (!datasets) return {};
+
+  return Object.fromEntries(
+    Object.entries(datasets).map(([id, dataset]) => {
+      try {
+        return [id, refreshDatasetMetadata(dataset)];
+      } catch (error) {
+        console.warn(`Failed to refresh metadata for dataset ${id}:`, error);
+        return [id, dataset];
+      }
+    }),
+  );
+}
 
 interface DataStore {
   // states
@@ -203,7 +237,8 @@ const useDataStore = create<DataStore>()(
           datatype !== 'Categorical' &&
           datatype !== 'Numeric' &&
           datatype !== 'Ordinal' &&
-          datatype !== 'Time-series'
+          datatype !== 'Time-series' &&
+          datatype !== 'Graph'
         )
           return;
         set((state) => ({
@@ -286,8 +321,20 @@ const useDataStore = create<DataStore>()(
         gameManifests: state.gameManifests,
         hasHydrated: state.hasHydrated,
       }),
-      onRehydrateStorage: (state) => {
-        return () => {
+      onRehydrateStorage: () => {
+        return (state, error) => {
+          if (error) {
+            console.warn('Data store hydration failed:', error);
+            state?.setHasHydrated(true);
+            return;
+          }
+
+          if (state && Object.keys(state.datasets ?? {}).length > 0) {
+            useDataStore.setState({
+              datasets: safeRefreshPersistedDatasets(state.datasets),
+            });
+          }
+
           state?.setHasHydrated(true);
         };
       },
