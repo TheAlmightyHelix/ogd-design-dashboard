@@ -5,6 +5,10 @@ import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
+import {
+  formatStatValue,
+  formatStatValues,
+} from '../../../utils/formatStatValue';
 
 interface DescriptiveStatisticsProps {
   dataset: GameData;
@@ -18,6 +22,7 @@ const measures = {
   median: 'Median',
   mode: 'Mode',
   range: 'Range',
+  quartiles: 'Quartiles',
   variance: 'Variance',
   standardDeviation: 'Std. Dev.',
 };
@@ -46,12 +51,17 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
     // Calculate the mean, median, mode, range, variance, standard deviation, skewness, and kurtosis
     const count = data.length;
     const unique = new Set(values).size;
-    const mean = d3.mean(values)?.toFixed(2);
+    const mean = d3.mean(values);
     const median = d3.median(values);
     const mode = d3.mode(values);
     const range = d3.extent(values);
-    const variance = d3.variance(values)?.toFixed(2);
-    const standardDeviation = d3.deviation(values)?.toFixed(2);
+    const quartiles = [
+      d3.quantile(values, 0.25),
+      d3.quantile(values, 0.5),
+      d3.quantile(values, 0.75),
+    ];
+    const variance = d3.variance(values);
+    const standardDeviation = d3.deviation(values);
     // const skewness =
     // const kurtosis = d3.kurtosis(values);
 
@@ -62,6 +72,7 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
       median,
       mode,
       range,
+      quartiles,
       variance,
       standardDeviation,
     };
@@ -88,6 +99,22 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
     );
   };
 
+  const formatMeasureDisplay = (
+    measure: keyof typeof measures,
+    value: unknown,
+  ): string => {
+    if (
+      (measure === 'range' || measure === 'quartiles') &&
+      Array.isArray(value)
+    ) {
+      return formatStatValues(value);
+    }
+    if (typeof value === 'number') {
+      return formatStatValue(value);
+    }
+    return value != null ? String(value) : '';
+  };
+
   const jumbotron = () => {
     if (!feature) return <></>;
 
@@ -95,9 +122,7 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
       return (
         <>
           <span className="text-6xl font-bold">
-            {measureSelected === 'range' && stats[measureSelected]
-              ? `${stats[measureSelected][0]} ~ ${stats[measureSelected][1]}`
-              : stats[measureSelected]}
+            {formatMeasureDisplay(measureSelected, stats[measureSelected])}
           </span>
           <span className="text-lg">
             <strong>
