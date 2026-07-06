@@ -131,6 +131,7 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
 
   const ItemDetails = () => {
     const [searchFeature, setSearchFeature] = useState('');
+    const [showFeatures, setShowFeatures] = useState(true);
     return (
       <div className="w-full mt-2 px-4">
         <hr className="border-gray-200 my-2" />
@@ -138,7 +139,19 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
         <DatasetFilter dataset={dataset} />
 
         <hr className="border-gray-200 my-2" />
-        <div className="font-bold text-sm text-gray-800 p-2">Features</div>
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 p-2 text-left font-bold text-sm text-gray-800"
+          onClick={() => setShowFeatures(!showFeatures)}
+          aria-expanded={showFeatures}
+        >
+          <ChevronRight
+            className={`w-4 h-4 shrink-0 hover:text-primary transition-colors transition-transform duration-100 ${showFeatures && 'rotate-90'}`}
+          />
+          Features
+        </button>
+        {showFeatures && (
+        <>
         <div className="px-1 pb-2">
           <Input
             placeholder="Search..."
@@ -190,6 +203,8 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
               ),
             )}
         </div>
+        </>
+        )}
       </div>
     );
   };

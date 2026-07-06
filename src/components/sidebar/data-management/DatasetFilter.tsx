@@ -2,12 +2,13 @@ import { useState, useMemo } from 'react';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import Input from '../../layout/Input';
 import useDataStore from '../../../store/useDataStore';
-import { X, Plus, Info } from 'lucide-react';
+import { X, Plus, Info, ChevronRight } from 'lucide-react';
 import * as d3 from 'd3';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 
 export default function DatasetFilter({ dataset }: { dataset: GameData }) {
   const { addFilter, removeFilter, updateFilter } = useDataStore();
+  const [showFilters, setShowFilters] = useState(true);
   const [showAddFilter, setShowAddFilter] = useState(false);
 
   const handleAddFilter = () => {
@@ -24,15 +25,26 @@ export default function DatasetFilter({ dataset }: { dataset: GameData }) {
 
   return (
     <div className="space-y-3 mb-3">
-      <div className="font-bold text-sm text-gray-800 px-3 pt-2">
-        Filters
-        {Object.keys(dataset.filters ?? {}).length > 0 && (
-          <span className="ml-2 text-xs text-gray-500 font-normal">
-            ({Object.keys(dataset.filters ?? {}).length} applied)
-          </span>
-        )}
-      </div>
+      <button
+        type="button"
+        className="flex w-full items-center gap-2 px-3 pt-2 text-left font-bold text-sm text-gray-800"
+        onClick={() => setShowFilters(!showFilters)}
+        aria-expanded={showFilters}
+      >
+        <ChevronRight
+          className={`w-4 h-4 shrink-0 hover:text-primary transition-colors transition-transform duration-100 ${showFilters && 'rotate-90'}`}
+        />
+        <span>
+          Filters
+          {Object.keys(dataset.filters ?? {}).length > 0 && (
+            <span className="ml-2 text-xs text-gray-500 font-normal">
+              ({Object.keys(dataset.filters ?? {}).length} applied)
+            </span>
+          )}
+        </span>
+      </button>
 
+      {showFilters && (
       <div className="px-3 space-y-3">
         {Object.entries(dataset.filters ?? {}).map(([feature, filter]) => (
           <FilterItem
@@ -66,6 +78,7 @@ export default function DatasetFilter({ dataset }: { dataset: GameData }) {
           </button>
         )}
       </div>
+      )}
     </div>
   );
 }
