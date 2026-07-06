@@ -4,6 +4,7 @@ import Select from '../layout/select/Select';
 import { VizType, VizTypeKey } from '../../constants/vizTypes';
 import Input from '../layout/Input';
 import { trackEvent } from '../../lib/analytics';
+import { getDefaultChartTitle } from '../../lib/chartTitle';
 
 interface VizSetupProps {
   gameDataIds: string[];
@@ -44,12 +45,6 @@ const VizSetup = ({
     if (!supportedChartTypes.includes(vizType) && !hasComparisonPair) {
       setVizType(supportedChartTypes[0]);
     }
-    if (!title) {
-      setTitle(
-        `${dataset?.game} ${dataset?.startDate}-${dataset?.endDate} ${dataset?.featureLevel} ${dataset?.additionalDetails?.split ?? ''}` ||
-          '',
-      );
-    }
   }, [gameDataIds[0], gameDataIds[1], datasets, vizType]);
 
   const visualize = () => {
@@ -70,114 +65,118 @@ const VizSetup = ({
   const filterInfo = selectedDataset?.filterInfo;
 
   return (
-    <div className="h-full flex flex-col gap-6 justify-center items-start p-4">
-      {!hasHydrated && (
-        <div className="text-sm text-gray-500">Loading datasets...</div>
-      )}
-      <div className="w-full space-y-3">
-        <Select
-          className="w-full"
-          label="Dataset"
-          value={gameDataIds[0] ?? ''}
-          onChange={(value) => {
-            const newDataset1 = value as string;
-            setGameDataIds((prev) => {
-              if (!prev[1] || prev[1] === newDataset1) {
-                return [newDataset1];
-              }
-              return [newDataset1, prev[1]];
-            });
-          }}
-          options={Object.fromEntries(
-            Object.entries(datasets).map(([key]) => [key, key]),
-          )}
-        />
-
-        {/* Filter status indicator */}
-        {filterInfo && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-            <div className="font-medium">Dataset Filters Applied</div>
-            <div>
-              Showing {filterInfo.filteredRows.toLocaleString()} of{' '}
-              {filterInfo.totalRows.toLocaleString()} rows
-              {filterInfo.filterCount > 0 && (
-                <span>
-                  {' '}
-                  ({filterInfo.filterCount} filter
-                  {filterInfo.filterCount !== 1 ? 's' : ''} active)
-                </span>
-              )}
-            </div>
-          </div>
+    <div className="flex h-full min-h-0 flex-col p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain">
+        {!hasHydrated && (
+          <div className="text-sm text-gray-500">Loading datasets...</div>
         )}
-      </div>
-      <Select
-        className="w-full"
-        label="Chart Type"
-        value={vizType}
-        onChange={(value) => setVizType(value as VizTypeKey)}
-        options={Object.fromEntries(
-          supportedChartTypes.map((type) => [type, VizType[type]]),
-        )}
-      />
-      <Input
-        label="Title"
-        placeholder="Type..."
-        value={title}
-        onChange={(value) => setTitle(value)}
-        debounce
-      />
-      {vizType === 'datasetComparison' && (
         <div className="w-full space-y-3">
           <Select
             className="w-full"
-            label="Dataset 2"
-            value={gameDataIds[1] ?? ''}
-            onChange={(value) =>
-              setGameDataIds((prev) =>
-                value ? [prev[0], value as string] : [prev[0]],
-              )
-            }
+            label="Dataset"
+            value={gameDataIds[0] ?? ''}
+            onChange={(value) => {
+              const newDataset1 = value as string;
+              setGameDataIds((prev) => {
+                if (!prev[1] || prev[1] === newDataset1) {
+                  return [newDataset1];
+                }
+                return [newDataset1, prev[1]];
+              });
+            }}
             options={Object.fromEntries(
               Object.entries(datasets).map(([key]) => [key, key]),
             )}
           />
 
-          {/* Filter status indicator for Dataset 2 */}
-          {gameDataIds[1] &&
-            (() => {
-              const dataset2 = getFilteredDataset(gameDataIds[1]);
-              const filterInfo2 = dataset2?.filterInfo;
-              return filterInfo2 ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
-                  <div className="font-medium">Dataset 2 Filters Applied</div>
-                  <div>
-                    Showing {filterInfo2.filteredRows.toLocaleString()} of{' '}
-                    {filterInfo2.totalRows.toLocaleString()} rows
-                    {filterInfo2.filterCount > 0 && (
-                      <span>
-                        {' '}
-                        ({filterInfo2.filterCount} filter
-                        {filterInfo2.filterCount !== 1 ? 's' : ''} active)
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ) : null;
-            })()}
+          {/* Filter status indicator */}
+          {filterInfo && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+              <div className="font-medium">Dataset Filters Applied</div>
+              <div>
+                Showing {filterInfo.filteredRows.toLocaleString()} of{' '}
+                {filterInfo.totalRows.toLocaleString()} rows
+                {filterInfo.filterCount > 0 && (
+                  <span>
+                    {' '}
+                    ({filterInfo.filterCount} filter
+                    {filterInfo.filterCount !== 1 ? 's' : ''} active)
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      )}
-      <button
-        disabled={
-          !gameDataIds.length ||
-          !vizType ||
-          (vizType === 'datasetComparison' && !gameDataIds[1])
-        }
-        className="px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer hover:bg-primary/80 transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-        onClick={visualize}
-      >
-        Apply
-      </button>
+        <Select
+          className="w-full"
+          label="Chart Type"
+          value={vizType}
+          onChange={(value) => setVizType(value as VizTypeKey)}
+          options={Object.fromEntries(
+            supportedChartTypes.map((type) => [type, VizType[type]]),
+          )}
+        />
+        <Input
+          label="Title"
+          placeholder={getDefaultChartTitle(gameDataIds, vizType) || 'Type...'}
+          value={title}
+          onChange={(value) => setTitle(value)}
+          debounce
+        />
+        {vizType === 'datasetComparison' && (
+          <div className="w-full space-y-3">
+            <Select
+              className="w-full"
+              label="Dataset 2"
+              value={gameDataIds[1] ?? ''}
+              onChange={(value) =>
+                setGameDataIds((prev) =>
+                  value ? [prev[0], value as string] : [prev[0]],
+                )
+              }
+              options={Object.fromEntries(
+                Object.entries(datasets).map(([key]) => [key, key]),
+              )}
+            />
+
+            {/* Filter status indicator for Dataset 2 */}
+            {gameDataIds[1] &&
+              (() => {
+                const dataset2 = getFilteredDataset(gameDataIds[1]);
+                const filterInfo2 = dataset2?.filterInfo;
+                return filterInfo2 ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
+                    <div className="font-medium">Dataset 2 Filters Applied</div>
+                    <div>
+                      Showing {filterInfo2.filteredRows.toLocaleString()} of{' '}
+                      {filterInfo2.totalRows.toLocaleString()} rows
+                      {filterInfo2.filterCount > 0 && (
+                        <span>
+                          {' '}
+                          ({filterInfo2.filterCount} filter
+                          {filterInfo2.filterCount !== 1 ? 's' : ''} active)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+          </div>
+        )}
+      </div>
+      <div className="flex-shrink-0 pt-3 pb-9">
+        <button
+          disabled={
+            !gameDataIds.length ||
+            !vizType ||
+            (vizType === 'datasetComparison' && !gameDataIds[1])
+          }
+          className="px-4 py-2 bg-primary text-white rounded-md font-medium cursor-pointer hover:bg-primary/80 transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+          onClick={visualize}
+        >
+          Apply
+        </button>
+      </div>
     </div>
   );
 };
