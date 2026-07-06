@@ -7,7 +7,6 @@ import CollapsibleSidePanel from '../components/sidebar/CollapsibleSidePanel';
 import LayoutManager from '../components/sidebar/LayoutManager';
 import TopBar from '../components/layout/TopBar';
 import DatasetDeepLinkProvider from '../components/providers/DatasetDeepLinkProvider';
-import { Upload } from 'lucide-react';
 import useDataStore from '../store/useDataStore';
 import useLayoutStore from '../store/useLayoutStore';
 import { trackEvent } from '../lib/analytics';
@@ -87,38 +86,27 @@ const HomePage: React.FC<HomePageProps> = ({ assistantEnabled }) => {
                     Dashboards
                   </button>
                 </nav>
-                <div className="flex items-center gap-2">
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="layout-data-store-json-file-upload"
-                      className="inline-flex items-center justify-center px-4 py-2 text-gray-500 rounded-md font-medium cursor-pointer hover:bg-gray-200 transition-colors text-sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        layoutDataStoreJsonFileInputRef.current?.click();
-                      }}
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Import
-                    </label>
-                    <input
-                      id="layout-data-store-json-file-upload"
-                      ref={layoutDataStoreJsonFileInputRef}
-                      type="file"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file && file.type === 'application/json') {
-                          handleImport(file);
-                        }
-                      }}
-                      className="hidden"
-                      accept="application/json"
-                    />
-                  </div>
-                </div>
               </div>
               <div className="mt-2 flex-1">
                 {activeTab === 0 && <DataSourceList />}
-                {activeTab === 1 && <LayoutManager />}
+                {activeTab === 1 && (
+                  <LayoutManager
+                    onImportClick={() => layoutDataStoreJsonFileInputRef.current?.click()}
+                  />
+                )}
+                <input
+                  id="layout-data-store-json-file-upload"
+                  ref={layoutDataStoreJsonFileInputRef}
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file && file.type === 'application/json') {
+                      handleImport(file);
+                    }
+                  }}
+                  className="hidden"
+                  accept="application/json"
+                />
               </div>
             </div>
           </CollapsibleSidePanel>

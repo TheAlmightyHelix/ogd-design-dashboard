@@ -1,4 +1,4 @@
-import { Plus, Save, X, Pencil, Download } from 'lucide-react';
+import { Plus, Save, X, Pencil, Download, Upload } from 'lucide-react';
 import useLayoutStore, {
   DashboardLayoutWithMeta,
 } from '../../store/useLayoutStore';
@@ -7,7 +7,11 @@ import { useState } from 'react';
 import Input from '../layout/Input';
 import { trackEvent } from '../../lib/analytics';
 
-const LayoutManager = () => {
+type LayoutManagerProps = {
+  onImportClick: () => void;
+};
+
+const LayoutManager = ({ onImportClick }: LayoutManagerProps) => {
   const {
     layouts,
     currentLayout,
@@ -84,6 +88,13 @@ const LayoutManager = () => {
           >
             <Plus className="w-4 h-4 mr-2" />
             New Dashboard
+          </button>
+          <button
+            onClick={onImportClick}
+            className="max-w-sm inline-flex flex-1 items-center justify-center px-4 py-2 border-1 border-primary text-primary rounded-md font-medium cursor-pointer hover:bg-primary/5 transition-colors text-sm"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Import Dashboard JSON
           </button>
         </div>
         {Object.entries(layouts).map(([id, layout]) => (
