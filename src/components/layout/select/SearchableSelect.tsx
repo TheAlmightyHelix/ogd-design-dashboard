@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import { ChevronDown, X } from 'lucide-react';
 
 interface BaseSearchableSelectProps {
@@ -68,6 +68,23 @@ const SearchableSelect = ({
   const prevIsOpenRef = useRef(false);
 
   useEffect(() => {
+    const gridItem = dropdownRef.current?.closest(
+      '.react-grid-item',
+    ) as HTMLElement | null;
+    if (!gridItem) return;
+
+    if (isOpen) {
+      gridItem.style.zIndex = '100';
+    } else {
+      gridItem.style.zIndex = '';
+    }
+
+    return () => {
+      gridItem.style.zIndex = '';
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     const justOpened = isOpen && !prevIsOpenRef.current;
     prevIsOpenRef.current = isOpen;
 
@@ -103,6 +120,35 @@ const SearchableSelect = ({
         value.filter((v) => v !== keyToRemove),
       );
     }
+  };
+
+  const handleSelectAll = (event: ReactMouseEvent) => {
+    event.stopPropagation();
+    if (!selectMultiple) return;
+
+    const currentValues = Array.isArray(value) ? value : [];
+    const keysToAdd = Object.keys(filteredOptions);
+    (onChange as (value: string[]) => void)(
+      Array.from(new Set([...currentValues, ...keysToAdd])),
+    );
+  };
+
+  const handleSelectNone = (event: ReactMouseEvent) => {
+    event.stopPropagation();
+    if (!selectMultiple) return;
+
+    (onChange as (value: string[]) => void)([]);
+  };
+
+  const handleExcludeSelection = (event: ReactMouseEvent) => {
+    event.stopPropagation();
+    if (!selectMultiple) return;
+
+    const currentValues = Array.isArray(value) ? value : [];
+    const newValues = Object.keys(options).filter(
+      (key) => !currentValues.includes(key),
+    );
+    (onChange as (value: string[]) => void)(newValues);
   };
 
   const getDisplayValue = () => {
@@ -156,8 +202,8 @@ const SearchableSelect = ({
         <ChevronDown className="pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
 
         {isOpen && (
-          <div className="absolute z-10 w-max min-w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
-            <div className="p-2 border-b border-gray-200">
+          <div className="absolute z-50 flex w-max min-w-full max-h-60 flex-col overflow-hidden mt-1 rounded-lg border border-gray-300 bg-white shadow-lg">
+            <div className="shrink-0 border-b border-gray-200 p-2">
               <input
                 type="text"
                 className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-primary focus:border-primary"
@@ -168,7 +214,10 @@ const SearchableSelect = ({
                 autoFocus
               />
             </div>
-            <div ref={scrollContainerRef} className="max-h-48 overflow-y-auto">
+            <div
+              ref={scrollContainerRef}
+              className="min-h-0 flex-1 overflow-y-auto"
+            >
               {Object.entries(filteredOptions).length > 0 ? (
                 Object.entries(filteredOptions).map(([key, displayName]) => (
                   <div
@@ -193,6 +242,31 @@ const SearchableSelect = ({
                 </div>
               )}
             </div>
+            {selectMultiple && (
+              <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-t border-gray-200 px-2 py-2">
+                <button
+                  type="button"
+                  className="rounded border border-gray-300 bg-transparent px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                  onClick={handleSelectAll}
+                >
+                  Select all
+                </button>
+                <button
+                  type="button"
+                  className="rounded border border-gray-300 bg-transparent px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                  onClick={handleSelectNone}
+                >
+                  Select none
+                </button>
+                <button
+                  type="button"
+                  className="rounded border border-gray-300 bg-transparent px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                  onClick={handleExcludeSelection}
+                >
+                  Exclude selection
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
