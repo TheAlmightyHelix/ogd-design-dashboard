@@ -153,8 +153,7 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
           return a.value.localeCompare(b.value);
         });
       } else {
-        // For categorical data, sort by count descending
-        chartData.sort((a, b) => b.count - a.count);
+        chartData.sort((a, b) => a.value.localeCompare(b.value));
       }
 
       // Chart dimensions with responsive margins
