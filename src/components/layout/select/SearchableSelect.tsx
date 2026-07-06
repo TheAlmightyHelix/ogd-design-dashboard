@@ -128,9 +128,9 @@ const SearchableSelect = ({
 
     const currentValues = Array.isArray(value) ? value : [];
     const keysToAdd = Object.keys(filteredOptions);
-    (onChange as (value: string[]) => void)([
-      ...new Set([...currentValues, ...keysToAdd]),
-    ]);
+    (onChange as (value: string[]) => void)(
+      Array.from(new Set([...currentValues, ...keysToAdd])),
+    );
   };
 
   const handleSelectNone = (event: ReactMouseEvent) => {
