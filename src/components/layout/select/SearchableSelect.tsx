@@ -65,16 +65,21 @@ const SearchableSelect = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const prevIsOpenRef = useRef(false);
+
   useEffect(() => {
-    if (isOpen && scrollContainerRef.current) {
-      const selectedKey =
-        selectMultiple && Array.isArray(value) ? value[0] : (value as string);
-      if (selectedKey && selectedKey in filteredOptions) {
-        const selectedEl = Array.from(
-          scrollContainerRef.current.querySelectorAll('[data-value]'),
-        ).find((el) => el.getAttribute('data-value') === selectedKey);
-        selectedEl?.scrollIntoView({ block: 'nearest', behavior: 'auto' });
-      }
+    const justOpened = isOpen && !prevIsOpenRef.current;
+    prevIsOpenRef.current = isOpen;
+
+    if (!justOpened || !scrollContainerRef.current) return;
+
+    const selectedKey =
+      selectMultiple && Array.isArray(value) ? value[0] : (value as string);
+    if (selectedKey && selectedKey in filteredOptions) {
+      const selectedEl = Array.from(
+        scrollContainerRef.current.querySelectorAll('[data-value]'),
+      ).find((el) => el.getAttribute('data-value') === selectedKey);
+      selectedEl?.scrollIntoView({ block: 'nearest', behavior: 'auto' });
     }
   }, [isOpen, selectMultiple, value, filteredOptions]);
 
