@@ -164,7 +164,7 @@ const VizSetup = ({
           </div>
         )}
       </div>
-      <div className="flex-shrink-0 pt-3 pb-9">
+      <div className="flex-shrink-0 pt-3 pb-10">
         <button
           disabled={
             !gameDataIds.length ||
