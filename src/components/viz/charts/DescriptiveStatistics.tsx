@@ -159,7 +159,7 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
             : 'Descriptive Statistics'
         }
       >
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-col gap-2">
           <FeatureSelect
             feature={feature}
             handleFeatureChange={(value) => setFeature(value)}
