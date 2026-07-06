@@ -24,7 +24,7 @@ export const CollapsibleChartConfig: React.FC<CollapsibleChartConfigProps> = ({
   );
 
   return (
-    <>
+    <div data-chart-export-exclude className="contents">
       {!showConfig && (
         <div
           className="group flex gap-0.5 items-center cursor-pointer hover:underline"
@@ -59,6 +59,6 @@ export const CollapsibleChartConfig: React.FC<CollapsibleChartConfigProps> = ({
           <span className="text-sm underline">Hide configuration</span>
         </button>
       </div>
-    </>
+    </div>
   );
 };
