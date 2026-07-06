@@ -107,9 +107,9 @@ export default function FeatureSelect({
   };
 
   return (
-    <div className="flex gap-2 w-full">
+    <div className="flex flex-wrap gap-2 w-full">
       <SearchableSelect
-        className="w-full min-w-0"
+        className="min-w-0 flex-1 basis-[min(100%,12rem)]"
         label={label}
         placeholder="Select a feature..."
         value={selectedBaseFeature}
@@ -119,6 +119,7 @@ export default function FeatureSelect({
 
       {selectedBaseFeature && hasIterations(selectedBaseFeature) && (
         <SearchableSelect
+          className="min-w-0 flex-1 basis-[min(100%,8rem)]"
           label="Iteration"
           placeholder="Select..."
           value={selectedIteration}
