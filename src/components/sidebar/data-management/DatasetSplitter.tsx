@@ -5,6 +5,11 @@ import Input from '../../layout/Input';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import * as d3 from 'd3';
+import {
+  getFilterNumericValues,
+  getNumericFeatureValue,
+  isNumericFilterColumn,
+} from '../../../utils/columnValueUtils';
 
 const DatasetSplitter = ({
   datasetIdToSplit,
@@ -25,12 +30,13 @@ const DatasetSplitter = ({
     if (!featureToSplitBy) return [];
 
     const columnType = dataset.columnTypes[featureToSplitBy];
-    if (columnType !== 'Numeric') return [];
+    if (!isNumericFilterColumn(columnType)) return [];
 
-    // Extract numeric values for the selected feature
-    const values: number[] = dataset.data
-      .map((d) => (d as Record<string, any>)[featureToSplitBy])
-      .filter((value) => typeof value === 'number' && !isNaN(value));
+    const values = getFilterNumericValues(
+      dataset.data as Array<Record<string, unknown>>,
+      featureToSplitBy,
+      columnType,
+    );
 
     return d3.extent(values);
   }, [featureToSplitBy, datasetIdToSplit, datasets]);
@@ -67,6 +73,7 @@ const DatasetSplitter = ({
         .filter(
           ([_, value]) =>
             value === 'Numeric' ||
+            value === 'Timedelta' ||
             value === 'Categorical' ||
             value === 'Ordinal',
         )
@@ -75,7 +82,7 @@ const DatasetSplitter = ({
   };
 
   const isNumericalFeature = () => {
-    return dataset.columnTypes[featureToSplitBy] === 'Numeric';
+    return isNumericFilterColumn(dataset.columnTypes[featureToSplitBy]);
   };
 
   const isCategoricalFeature = () => {
@@ -101,14 +108,20 @@ const DatasetSplitter = ({
         return;
       }
 
+      const columnType = dataset.columnTypes[featureToSplitBy];
+
       addDataset({
         ...dataset,
         id: `${datasetIdToSplit}-${featureToSplitBy} < ${splitAtValueNumber}`,
         data: Object.assign(
-          dataset.data.filter(
-            (d) =>
-              (d as Record<string, any>)[featureToSplitBy] < splitAtValueNumber,
-          ),
+          dataset.data.filter((d) => {
+            const value = getNumericFeatureValue(
+              d as Record<string, unknown>,
+              featureToSplitBy,
+              columnType,
+            );
+            return value != null && value < splitAtValueNumber;
+          }),
           { columns: dataset.data.columns },
         ),
         additionalDetails: {
@@ -120,11 +133,14 @@ const DatasetSplitter = ({
         ...dataset,
         id: `${datasetIdToSplit}-${featureToSplitBy} >= ${splitAtValueNumber}`,
         data: Object.assign(
-          dataset.data.filter(
-            (d) =>
-              (d as Record<string, any>)[featureToSplitBy] >=
-              splitAtValueNumber,
-          ),
+          dataset.data.filter((d) => {
+            const value = getNumericFeatureValue(
+              d as Record<string, unknown>,
+              featureToSplitBy,
+              columnType,
+            );
+            return value != null && value >= splitAtValueNumber;
+          }),
           { columns: dataset.data.columns },
         ),
         additionalDetails: {

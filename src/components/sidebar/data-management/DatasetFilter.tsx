@@ -5,6 +5,11 @@ import useDataStore from '../../../store/useDataStore';
 import { X, Plus, Info, ChevronRight } from 'lucide-react';
 import * as d3 from 'd3';
 import FeatureSelect from '../../layout/select/FeatureSelect';
+import {
+  getFilterNumericValues,
+  isFilterableColumn,
+  isNumericFilterColumn,
+} from '../../../utils/columnValueUtils';
 
 export default function DatasetFilter({ dataset }: { dataset: GameData }) {
   const { addFilter, removeFilter, updateFilter } = useDataStore();
@@ -111,7 +116,7 @@ const FilterItem = ({
   );
 
   const columnType = dataset.columnTypes[feature];
-  const isNumeric = columnType === 'Numeric';
+  const isNumeric = isNumericFilterColumn(columnType ?? undefined);
   const isCategorical =
     columnType === 'Categorical' || columnType === 'Ordinal';
 
@@ -130,12 +135,13 @@ const FilterItem = ({
 
   const range = useMemo(() => {
     if (!dataset || !feature) return [];
-    if (columnType !== 'Numeric') return [];
+    if (!isNumericFilterColumn(columnType)) return [];
 
-    // Extract numeric values for the selected feature
-    const values: number[] = dataset.data
-      .map((d) => (d as Record<string, any>)[feature])
-      .filter((value) => typeof value === 'number' && !isNaN(value));
+    const values = getFilterNumericValues(
+      dataset.data as Array<Record<string, unknown>>,
+      feature,
+      columnType,
+    );
 
     return d3.extent(values);
   }, [feature, dataset, columnType]);
@@ -304,7 +310,10 @@ const AddFilterItem = ({ dataset, onAdd, onCancel }: AddFilterItemProps) => {
     const existingFilters = Object.keys(dataset.filters ?? {});
     return Object.fromEntries(
       Object.entries(dataset.columnTypes)
-        .filter(([key]) => !existingFilters.includes(key))
+        .filter(
+          ([key, type]) =>
+            !existingFilters.includes(key) && isFilterableColumn(type),
+        )
         .map(([key]) => [key, key]),
     );
   }, [dataset.columnTypes, dataset.filters]);
@@ -325,11 +334,13 @@ const AddFilterItem = ({ dataset, onAdd, onCancel }: AddFilterItemProps) => {
   const range = useMemo(() => {
     if (!dataset || !selectedFeature) return [];
     const columnType = dataset.columnTypes[selectedFeature];
-    if (columnType !== 'Numeric') return [];
+    if (!isNumericFilterColumn(columnType)) return [];
 
-    const values: number[] = dataset.data
-      .map((d) => (d as Record<string, any>)[selectedFeature])
-      .filter((value) => typeof value === 'number' && !isNaN(value));
+    const values = getFilterNumericValues(
+      dataset.data as Array<Record<string, unknown>>,
+      selectedFeature,
+      columnType,
+    );
 
     return d3.extent(values);
   }, [selectedFeature, dataset]);
@@ -337,7 +348,7 @@ const AddFilterItem = ({ dataset, onAdd, onCancel }: AddFilterItemProps) => {
   const columnType = selectedFeature
     ? dataset.columnTypes[selectedFeature]
     : null;
-  const isNumeric = columnType === 'Numeric';
+  const isNumeric = isNumericFilterColumn(columnType ?? undefined);
   const isCategorical =
     columnType === 'Categorical' || columnType === 'Ordinal';
 

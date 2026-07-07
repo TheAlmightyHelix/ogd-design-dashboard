@@ -1,5 +1,9 @@
 import { VizTypeKey } from '../constants/vizTypes';
 import { isGraphFeature } from '../utils/graphFeatureUtils';
+import {
+  columnHasDatetimeValues,
+  columnHasTimedeltaValues,
+} from '../utils/temporalUtils';
 
 function columnHasGraphFeature(
   extractedData: d3.DSVParsedArray<object>,
@@ -9,11 +13,40 @@ function columnHasGraphFeature(
     return false;
   }
 
-  for (let i = 0; i < extractedData.length; i++) {
+  const INFERENCE_MAX_ROWS = 2000;
+  const length = extractedData.length;
+  const limit = Math.min(length, INFERENCE_MAX_ROWS);
+
+  for (let i = 0; i < limit; i++) {
     const row = extractedData[i] as Record<string, unknown>;
     if (isGraphFeature(row[column])) return true;
   }
+
+  if (length > limit) {
+    const stride = Math.max(1, Math.floor((length - limit) / limit));
+    for (let i = limit; i < length; i += stride) {
+      const row = extractedData[i] as Record<string, unknown>;
+      if (isGraphFeature(row[column])) return true;
+    }
+  }
+
   return false;
+}
+
+function datasetHasDatetimeFeature(
+  extractedData: d3.DSVParsedArray<object>,
+): boolean {
+  if (!extractedData || typeof extractedData.length !== 'number') {
+    return false;
+  }
+
+  const columns =
+    (extractedData.columns as string[] | undefined) ??
+    (extractedData[0] ? Object.keys(extractedData[0]) : []);
+
+  return columns.some((column) =>
+    columnHasDatetimeValues(extractedData, column),
+  );
 }
 
 function datasetHasGraphFeature(
@@ -42,6 +75,10 @@ export const getColumnTypes = (extractedData: d3.DSVParsedArray<object>) => {
   for (const key of columns) {
     if (columnHasGraphFeature(extractedData, key)) {
       columnTypes[key] = 'Graph';
+    } else if (columnHasTimedeltaValues(extractedData, key)) {
+      columnTypes[key] = 'Timedelta';
+    } else if (columnHasDatetimeValues(extractedData, key)) {
+      columnTypes[key] = 'Datetime';
     } else {
       const firstValue = firstRow?.[key];
       columnTypes[key] =
@@ -83,6 +120,7 @@ export const getSupportedChartTypes = (
   );
 
   const forceDirectedGraphSupported = datasetHasGraphFeature(extractedData);
+  const timelineSupported = datasetHasDatetimeFeature(extractedData);
 
   if (featureLevel === 'population') {
     if (forceDirectedGraphSupported) {
@@ -102,6 +140,9 @@ export const getSupportedChartTypes = (
     supportedChartTypes.push('scatter');
     supportedChartTypes.push('boxPlot');
     supportedChartTypes.push('datasetComparison');
+    if (timelineSupported) {
+      supportedChartTypes.push('timeline');
+    }
     if (forceDirectedGraphSupported) {
       supportedChartTypes.push('forceDirectedGraph');
       supportedChartTypes.push('sankey');

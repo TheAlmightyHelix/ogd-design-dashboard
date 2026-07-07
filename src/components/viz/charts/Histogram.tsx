@@ -8,6 +8,12 @@ import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 import { applyFilters } from '../../sidebar/data-management/filterUtils';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
+import {
+  createNumericAxisFormatter,
+  formatChartNumericValue,
+  getFeatureOptionsForColumnTypes,
+  getNumericFeatureValues,
+} from '../../../utils/columnValueUtils';
 
 /** Get merged "in filter" segments for a bin given selected ranges (left/right in value space) */
 function getInSegments(
@@ -79,19 +85,18 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
     const filteredData = applyFilters(
       datasetRecord.data,
       filtersExcludingFeature,
+      datasetRecord.columnTypes,
     );
     return Object.assign(filteredData, {
       columns: datasetRecord.data.columns,
     }) as typeof datasetRecord.data;
   }, [datasetRecord?.data, filtersExcludingFeature]);
 
-  const getFeatureOptions = () => {
-    return Object.fromEntries(
-      Object.entries(dataset.columnTypes)
-        .filter(([_, value]) => value === 'Numeric')
-        .map(([key]) => [key, key]),
-    );
-  };
+  const getFeatureOptions = () =>
+    getFeatureOptionsForColumnTypes(dataset.columnTypes, [
+      'Numeric',
+      'Timedelta',
+    ]);
 
   // prevent invalid feature selection
   useEffect(() => {
@@ -147,20 +152,16 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
     ) => {
       if (!feature || !data.length) return;
 
-      // Extract numeric values for the selected feature
+      const columnType = dataset.columnTypes[feature];
       const safeMin =
         typeof rangeFilter.min === 'number' ? rangeFilter.min : -Infinity;
       const safeMax =
         typeof rangeFilter.max === 'number' ? rangeFilter.max : Infinity;
-      const values = data
-        .map((d) => (d as Record<string, any>)[feature])
-        .filter(
-          (value) =>
-            typeof value === 'number' &&
-            !isNaN(value) &&
-            value >= safeMin &&
-            value <= safeMax,
-        );
+      const values = getNumericFeatureValues(
+        data as Array<Record<string, unknown>>,
+        feature,
+        columnType,
+      ).filter((value) => value >= safeMin && value <= safeMax);
 
       if (values.length === 0) return;
 
@@ -315,7 +316,10 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .filter((value): value is number => value !== undefined)
         .filter((value, index, array) => array.indexOf(value) === index)
         .sort((a, b) => a - b);
-      const xAxis = d3.axisBottom(xScale).tickValues(binBoundaries);
+      const xAxis = d3
+        .axisBottom(xScale)
+        .tickValues(binBoundaries)
+        .tickFormat(createNumericAxisFormatter(columnType));
 
       chartGroup
         .append('g')
@@ -366,7 +370,7 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .attr('text-anchor', 'end')
         .attr('font-size', Math.max(10, Math.min(12, height / 35)))
         .attr('fill', '#6b7280')
-        .text(`Mean: ${mean.toFixed(2)}`);
+        .text(`Mean: ${formatChartNumericValue(mean, columnType)}`);
 
       chartGroup
         .append('text')
@@ -375,7 +379,7 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .attr('text-anchor', 'end')
         .attr('font-size', Math.max(10, Math.min(12, height / 35)))
         .attr('fill', '#6b7280')
-        .text(`Std: ${std.toFixed(2)}`);
+        .text(`Std: ${formatChartNumericValue(std, columnType)}`);
 
       chartGroup
         .append('text')
@@ -384,7 +388,7 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .attr('text-anchor', 'end')
         .attr('font-size', Math.max(10, Math.min(12, height / 35)))
         .attr('fill', '#6b7280')
-        .text(`Median: ${median.toFixed(2)}`);
+        .text(`Median: ${formatChartNumericValue(median, columnType)}`);
 
       chartGroup
         .append('text')
@@ -393,7 +397,7 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
         .attr('text-anchor', 'end')
         .attr('font-size', Math.max(10, Math.min(12, height / 35)))
         .attr('fill', '#6b7280')
-        .text(`Mode: ${mode.toFixed(2)}`);
+        .text(`Mode: ${formatChartNumericValue(mode, columnType)}`);
     },
     [
       feature,
@@ -403,6 +407,7 @@ export const Histogram: React.FC<HistogramProps> = ({ dataset, chartId }) => {
       selectedBins,
       handleBinToggle,
       yAxisMax,
+      dataset.columnTypes,
     ],
   );
 

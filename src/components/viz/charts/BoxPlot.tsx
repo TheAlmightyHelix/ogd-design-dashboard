@@ -5,6 +5,13 @@ import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
+import {
+  createNumericAxisFormatter,
+  formatChartNumericValue,
+  getFeatureOptionsForColumnTypes,
+  getNumericFeatureValues,
+  isNumericChartColumn,
+} from '../../../utils/columnValueUtils';
 
 interface BoxPlotProps {
   dataset: GameData;
@@ -33,10 +40,12 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ dataset, chartId }) => {
     ) => {
       if (!feature || !data.length) return;
 
-      // Calculate box plot statistics
-      const values = data
-        .map((d) => (d as Record<string, any>)[feature])
-        .filter((v) => v !== null && v !== undefined);
+      const columnType = dataset.columnTypes[feature];
+      const values = getNumericFeatureValues(
+        data as Array<Record<string, unknown>>,
+        feature,
+        columnType,
+      );
       if (values.length === 0) return;
 
       const sortedValues = values.sort((a, b) => a - b);
@@ -151,7 +160,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ dataset, chartId }) => {
       }
 
       // Add Y axis
-      const yAxis = d3.axisLeft(yScale);
+      const yAxis = d3.axisLeft(yScale).tickFormat(createNumericAxisFormatter(columnType));
       chartGroup
         .append('g')
         .call(yAxis)
@@ -176,7 +185,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ dataset, chartId }) => {
         .attr('text-anchor', 'end')
         .attr('font-size', Math.max(10, Math.min(12, height / 35)))
         .attr('fill', '#6b7280')
-        .text(`Q1: ${q1.toFixed(2)}`);
+        .text(`Q1: ${formatChartNumericValue(q1, columnType)}`);
 
       chartGroup
         .append('text')
@@ -185,7 +194,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ dataset, chartId }) => {
         .attr('text-anchor', 'end')
         .attr('font-size', Math.max(10, Math.min(12, height / 35)))
         .attr('fill', '#6b7280')
-        .text(`Q2: ${q2.toFixed(2)}`);
+        .text(`Q2: ${formatChartNumericValue(q2, columnType)}`);
 
       chartGroup
         .append('text')
@@ -194,7 +203,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ dataset, chartId }) => {
         .attr('text-anchor', 'end')
         .attr('font-size', Math.max(10, Math.min(12, height / 35)))
         .attr('fill', '#6b7280')
-        .text(`Q3: ${q3.toFixed(2)}`);
+        .text(`Q3: ${formatChartNumericValue(q3, columnType)}`);
 
       chartGroup
         .append('text')
@@ -203,20 +212,18 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ dataset, chartId }) => {
         .attr('text-anchor', 'end')
         .attr('font-size', Math.max(10, Math.min(12, height / 35)))
         .attr('fill', '#6b7280')
-        .text(`IQR: ${iqr.toFixed(2)}`);
+        .text(`IQR: ${formatChartNumericValue(iqr, columnType)}`);
     },
-    [feature, data],
+    [feature, data, dataset.columnTypes],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);
 
-  const getFeatureOptions = () => {
-    return Object.fromEntries(
-      Object.entries(dataset.columnTypes)
-        .filter(([_, value]) => value === 'Numeric')
-        .map(([key]) => [key, key]),
-    );
-  };
+  const getFeatureOptions = () =>
+    getFeatureOptionsForColumnTypes(dataset.columnTypes, [
+      'Numeric',
+      'Timedelta',
+    ]);
 
   return (
     <div className="flex flex-col gap-2 px-2 pb-2 h-full">

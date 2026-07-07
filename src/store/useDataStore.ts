@@ -194,7 +194,11 @@ const useDataStore = create<DataStore>()(
         }
 
         // Has filters = apply filtering
-        const filteredData = applyFilters(dataset.data, dataset.filters);
+        const filteredData = applyFilters(
+          dataset.data,
+          dataset.filters,
+          dataset.columnTypes,
+        );
         // Maintain DSVRowArray structure
         const filteredDataWithColumns = Object.assign(filteredData, {
           columns: dataset.data.columns,
@@ -237,7 +241,8 @@ const useDataStore = create<DataStore>()(
           datatype !== 'Categorical' &&
           datatype !== 'Numeric' &&
           datatype !== 'Ordinal' &&
-          datatype !== 'Time-series' &&
+          datatype !== 'Timedelta' &&
+          datatype !== 'Datetime' &&
           datatype !== 'Graph'
         )
           return;

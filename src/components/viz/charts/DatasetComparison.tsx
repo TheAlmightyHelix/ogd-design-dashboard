@@ -7,6 +7,10 @@ import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 import SearchableSelect from '../../layout/select/SearchableSelect';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
+import {
+  getFeatureOptionsForColumnTypes,
+  getNumericFeatureValues,
+} from '../../../utils/columnValueUtils';
 
 export type TTestTail = 'two' | 'left' | 'right';
 
@@ -67,13 +71,17 @@ const DatasetComparison: React.FC<DatasetComparisonProps> = ({
       !data1[0]
     )
       return {};
-    // Extract numeric values for the selected feature
-    const values1: number[] = data1
-      .map((d) => (d as Record<string, any>)[feature])
-      .filter((value) => typeof value === 'number' && !isNaN(value));
-    const values2: number[] = data2
-      .map((d) => (d as Record<string, any>)[feature])
-      .filter((value) => typeof value === 'number' && !isNaN(value));
+    const columnType = dataset1.columnTypes[feature];
+    const values1 = getNumericFeatureValues(
+      data1 as Array<Record<string, unknown>>,
+      feature,
+      columnType,
+    );
+    const values2 = getNumericFeatureValues(
+      data2 as Array<Record<string, unknown>>,
+      feature,
+      columnType,
+    );
 
     // tTestTwoSample returns the t-statistic, not the p-value
     const tStatistic = tTestTwoSample(values1, values2);
@@ -86,15 +94,13 @@ const DatasetComparison: React.FC<DatasetComparisonProps> = ({
       pValue,
       diff,
     };
-  }, [feature, data1, data2, tail]);
+  }, [feature, data1, data2, tail, dataset1.columnTypes, datasets.length]);
 
-  const getFeatureOptions = () => {
-    return Object.fromEntries(
-      Object.entries(dataset1.columnTypes)
-        .filter(([_, value]) => value === 'Numeric')
-        .map(([key]) => [key, key]),
-    );
-  };
+  const getFeatureOptions = () =>
+    getFeatureOptionsForColumnTypes(dataset1.columnTypes, [
+      'Numeric',
+      'Timedelta',
+    ]);
 
   return (
     <div className="flex flex-col gap-2 px-2 pb-2 h-full">

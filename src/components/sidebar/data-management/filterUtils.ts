@@ -1,12 +1,19 @@
+import {
+  getDatetimeFeatureValue,
+  getNumericFeatureValue,
+} from '../../../utils/columnValueUtils';
+
 /**
  * Apply filters to a dataset
  * @param data - The dataset to filter
  * @param filters - Object containing filters by feature name
+ * @param columnTypes - Optional column types for temporal parsing
  * @returns Filtered dataset
  */
 export const applyFilters = (
   data: any[],
   filters: Record<string, FeatureFilter>,
+  columnTypes?: Record<string, ColumnType>,
 ): any[] => {
   if (!filters || Object.keys(filters).length === 0) {
     return data;
@@ -22,7 +29,27 @@ export const applyFilters = (
       ) {
         return filter.selectedCategories?.includes(value.toString()) ?? true;
       } else if (filter.filterType === 'numeric') {
-        const numValue = Number(value);
+        let numValue: number;
+        if (columnTypes) {
+          const columnType = columnTypes[featureName];
+          if (columnType === 'Datetime') {
+            const date = getDatetimeFeatureValue(
+              row as Record<string, unknown>,
+              featureName,
+              columnType,
+            );
+            numValue = date ? date.getTime() : NaN;
+          } else {
+            numValue =
+              getNumericFeatureValue(
+                row as Record<string, unknown>,
+                featureName,
+                columnType,
+              ) ?? NaN;
+          }
+        } else {
+          numValue = Number(value);
+        }
         if (isNaN(numValue)) return false;
 
         // Support multiple ranges (for histogram bin selection)

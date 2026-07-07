@@ -31,7 +31,8 @@ declare global {
     | 'Categorical'
     | 'Numeric'
     | 'Ordinal'
-    | 'Time-series'
+    | 'Timedelta'
+    | 'Datetime'
     | 'Graph';
 
   interface FeatureFilter {
