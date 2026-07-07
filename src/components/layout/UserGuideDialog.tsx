@@ -211,6 +211,29 @@ const UserGuideDialog: React.FC = () => {
                         (same as above)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        Timedelta (duration strings)
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        Descriptive Statistics, Histogram, Dataset Comparison,
+                        Scatter Plot, Box Plot
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-3 text-gray-500 italic">
+                        (same as above)
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        Datetime (timestamp strings)
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        Timeline
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-3 text-gray-500 italic">
+                        (same as above)
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         Graph (e.g. PlayerProgression)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">

@@ -6,8 +6,10 @@
 export function isGraphFeature(value: unknown): boolean {
   let parsed: unknown = value;
   if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed.startsWith('{')) return false;
     try {
-      parsed = JSON.parse(value);
+      parsed = JSON.parse(trimmed);
     } catch {
       return false;
     }

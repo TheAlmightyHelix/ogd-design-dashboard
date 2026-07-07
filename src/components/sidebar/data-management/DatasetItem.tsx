@@ -4,6 +4,11 @@ import Input from '../../layout/Input';
 import Select from '../../layout/select/Select';
 import useDataStore from '../../../store/useDataStore';
 import DatasetFilter from './DatasetFilter';
+import {
+  getBaseFeatureFromKey,
+  getIteratedFeatureMap,
+  isIteratedBaseFeature,
+} from '../../../utils/featureNameUtils';
 
 interface DatasetItemProps {
   dataset: GameData;
@@ -17,31 +22,10 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
   const { updateDatasetColumnType, getFilteredDataset } = useDataStore();
   const filteredDataset = getFilteredDataset(dataset.id);
 
-  const iteratedFeatureMap = useMemo(() => {
-    const map: Record<string, string[]> = {};
-
-    Object.keys(dataset.columnTypes).forEach((featureKey) => {
-      const [iteration, baseFeature] = featureKey.split('_');
-      if (!baseFeature) return;
-
-      if (!map[baseFeature]) {
-        map[baseFeature] = [];
-      }
-
-      map[baseFeature].push(featureKey);
-    });
-
-    Object.keys(map).forEach((baseFeature) => {
-      if (
-        dataset.columnTypes[baseFeature] &&
-        !map[baseFeature].includes(baseFeature)
-      ) {
-        map[baseFeature].push(baseFeature);
-      }
-    });
-
-    return map;
-  }, [dataset.columnTypes]);
+  const iteratedFeatureMap = useMemo(
+    () => getIteratedFeatureMap(Object.keys(dataset.columnTypes)),
+    [dataset.columnTypes],
+  );
 
   interface DisplayFeature {
     displayName: string;
@@ -56,9 +40,10 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
     const features: DisplayFeature[] = [];
 
     Object.entries(dataset.columnTypes).forEach(([featureKey, columnType]) => {
-      if (featureKey.includes('_')) {
-        const [, baseFeature] = featureKey.split('_');
-        if (!baseFeature || seenIteratedBases.has(baseFeature)) return;
+      const baseFeature = getBaseFeatureFromKey(featureKey);
+
+      if (baseFeature && isIteratedBaseFeature(baseFeature, iteratedFeatureMap)) {
+        if (seenIteratedBases.has(baseFeature)) return;
         seenIteratedBases.add(baseFeature);
 
         const relatedFeatureKeys = iteratedFeatureMap[baseFeature] ?? [
@@ -84,7 +69,9 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
           columnType: resolvedColumnType,
           isIterated: true,
         });
-      } else if (!iteratedFeatureMap[featureKey]) {
+      } else if (!baseFeature || !isIteratedBaseFeature(baseFeature, iteratedFeatureMap)) {
+        if (iteratedFeatureMap[featureKey]) return;
+
         features.push({
           displayName: featureKey,
           relatedFeatureKeys: [featureKey],
@@ -112,6 +99,12 @@ const DatasetItem = ({ dataset, onSplit, onRemove }: DatasetItemProps) => {
   ) => {
     if (columnType === 'Graph') {
       return { Graph: 'Graph' } as Record<string, ColumnType>;
+    }
+    if (columnType === 'Timedelta') {
+      return { Timedelta: 'Timedelta' } as Record<string, ColumnType>;
+    }
+    if (columnType === 'Datetime') {
+      return { Datetime: 'Datetime' } as Record<string, ColumnType>;
     }
 
     const permittedTypes = {

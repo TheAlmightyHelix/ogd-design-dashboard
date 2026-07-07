@@ -41,12 +41,18 @@ export type GraphChartOptions = {
   showConfig?: boolean;
 };
 
+export type TimelineChartOptions = {
+  feature: string;
+  showConfig?: boolean;
+};
+
 export type ChartOptionsByVizType = {
   bar: BarChartOptions;
   histogram: HistogramChartOptions;
   scatter: ScatterChartOptions;
   boxPlot: BoxPlotChartOptions;
   descriptiveStatistics: DescriptiveStatisticsChartOptions;
+  timeline: TimelineChartOptions;
   forceDirectedGraph: GraphChartOptions;
   jobGraph: GraphChartOptions;
   sankey: GraphChartOptions;
@@ -58,6 +64,7 @@ const SUPPORTED_VIZ_TYPES: VizTypeKey[] = [
   'scatter',
   'boxPlot',
   'descriptiveStatistics',
+  'timeline',
   'forceDirectedGraph',
   'sankey',
 ];

@@ -13,6 +13,11 @@ import useChartOption from '../../../hooks/useChartOption';
 import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
+import {
+  createNumericAxisFormatter,
+  getFeatureOptionsForColumnTypes,
+  getNumericFeatureValue,
+} from '../../../utils/columnValueUtils';
 
 interface ScatterPlotProps {
   dataset: GameData;
@@ -63,13 +68,11 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
   const filteredDataset = getFilteredDataset(dataset.id);
   const data = filteredDataset?.data || [];
 
-  const getFeatureOptions = () => {
-    return Object.fromEntries(
-      Object.entries(dataset.columnTypes)
-        .filter(([_, value]) => value === 'Numeric')
-        .map(([key]) => [key, key]),
-    );
-  };
+  const getFeatureOptions = () =>
+    getFeatureOptionsForColumnTypes(dataset.columnTypes, [
+      'Numeric',
+      'Timedelta',
+    ]);
 
   // prevent invalid feature selection
   useEffect(() => {
@@ -110,39 +113,44 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
       const safeMaxY =
         typeof yRangeFilter.max === 'number' ? yRangeFilter.max : Infinity;
 
-      const dots = data.filter((d) => {
-        const xValue = (d as Record<string, any>)[xFeature];
-        const yValue = (d as Record<string, any>)[yFeature];
-        return (
-          xValue >= safeMin &&
-          xValue <= safeMax &&
-          yValue >= safeMinY &&
-          yValue <= safeMaxY
-        );
-      });
+      const dots = data
+        .map((row) => {
+          const record = row as Record<string, unknown>;
+          const xValue = getNumericFeatureValue(
+            record,
+            xFeature,
+            dataset.columnTypes[xFeature],
+          );
+          const yValue = getNumericFeatureValue(
+            record,
+            yFeature,
+            dataset.columnTypes[yFeature],
+          );
+          if (xValue == null || yValue == null) return null;
+          return { x: xValue, y: yValue };
+        })
+        .filter((point): point is { x: number; y: number } => {
+          if (!point) return false;
+          return (
+            point.x >= safeMin &&
+            point.x <= safeMax &&
+            point.y >= safeMinY &&
+            point.y <= safeMaxY
+          );
+        });
 
       if (dots.length === 0) return;
 
       // Create scales
       const xScale = d3
         .scaleLinear()
-        .domain(
-          d3.extent(dots.map((d) => (d as Record<string, any>)[xFeature])) as [
-            number,
-            number,
-          ],
-        )
+        .domain(d3.extent(dots, (d) => d.x) as [number, number])
         .range([0, width])
         .nice();
 
       const yScale = d3
         .scaleLinear()
-        .domain(
-          d3.extent(dots.map((d) => (d as Record<string, any>)[yFeature])) as [
-            number,
-            number,
-          ],
-        )
+        .domain(d3.extent(dots, (d) => d.y) as [number, number])
         .range([height, 0])
         .nice();
 
@@ -153,8 +161,8 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
         .enter()
         .append('circle')
         .attr('class', 'dot')
-        .attr('cx', (d) => xScale((d as Record<string, any>)[xFeature]))
-        .attr('cy', (d) => yScale((d as Record<string, any>)[yFeature]))
+        .attr('cx', (d) => xScale(d.x))
+        .attr('cy', (d) => yScale(d.y))
         .attr('r', 4)
         .attr('fill', '#281d8d')
         .attr('opacity', 0.7);
@@ -177,10 +185,7 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
         };
 
         // Filter data for exponential and logarithmic regression
-        let regressionData = dots.map((d) => ({
-          x: (d as Record<string, any>)[xFeature],
-          y: (d as Record<string, any>)[yFeature],
-        }));
+        let regressionData = dots.map((d) => ({ x: d.x, y: d.y }));
 
         // For exponential and logarithmic, filter out non-positive values
         if (
@@ -256,7 +261,7 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
       const xAxis = d3
         .axisBottom(xScale)
         .ticks(Math.min(8, Math.floor(width / 50)))
-        .tickFormat(d3.format('~s'));
+        .tickFormat(createNumericAxisFormatter(dataset.columnTypes[xFeature]));
       chartGroup
         .append('g')
         .attr('transform', `translate(0,${height})`)
@@ -270,7 +275,7 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
       const yAxis = d3
         .axisLeft(yScale)
         .ticks(Math.min(8, Math.floor(height / 30)))
-        .tickFormat(d3.format('~s'));
+        .tickFormat(createNumericAxisFormatter(dataset.columnTypes[yFeature]));
       chartGroup
         .append('g')
         .call(yAxis)
@@ -299,7 +304,7 @@ export const ScatterPlot: React.FC<ScatterPlotProps> = ({
         .attr('fill', '#374151')
         .text(xFeature);
     },
-    [xFeature, yFeature, regressionLine, data, xRangeFilter, yRangeFilter],
+    [xFeature, yFeature, regressionLine, data, xRangeFilter, yRangeFilter, dataset.columnTypes],
   );
 
   const { svgRef, containerRef } = useResponsiveChart(renderChart);

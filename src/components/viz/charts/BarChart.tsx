@@ -48,6 +48,7 @@ export const BarChart: React.FC<BarChartProps> = ({ dataset, chartId }) => {
     const filteredData = applyFilters(
       datasetRecord.data,
       filtersExcludingFeature,
+      datasetRecord.columnTypes,
     );
     return Object.assign(filteredData, {
       columns: datasetRecord.data.columns,

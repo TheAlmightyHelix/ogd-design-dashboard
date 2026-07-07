@@ -2,6 +2,7 @@ import { Upload } from 'lucide-react';
 import { useRef } from 'react';
 import useDataStore from '../../../store/useDataStore';
 import { parseTSV } from '../../../adapters/tsvAdapter';
+import { ParseTSVError } from '../../../adapters/tsvAdapterDebug';
 import { trackEvent } from '../../../lib/analytics';
 
 const DatasetTSVPicker = () => {
@@ -43,7 +44,16 @@ const DatasetTSVPicker = () => {
       }
     } catch (error) {
       console.error('Error parsing TSV file:', error);
-      alert('Error parsing file. Please check the file format.');
+      if (error instanceof ParseTSVError) {
+        console.error('[parseTSV] structured trace:', error.traces);
+      }
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown error while parsing TSV file.';
+      alert(
+        `Error parsing file.\n\n${message}\n\nOpen the browser console and filter for "[parseTSV]" for the full trace.`,
+      );
     }
   };
 

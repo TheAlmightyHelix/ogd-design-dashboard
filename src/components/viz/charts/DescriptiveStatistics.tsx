@@ -6,9 +6,11 @@ import useDataStore from '../../../store/useDataStore';
 import FeatureSelect from '../../layout/select/FeatureSelect';
 import { CollapsibleChartConfig } from '../CollapsibleChartConfig';
 import {
-  formatStatValue,
-  formatStatValues,
-} from '../../../utils/formatStatValue';
+  formatChartNumericValue,
+  getFeatureOptionsForColumnTypes,
+  getNumericFeatureValues,
+  isNumericChartColumn,
+} from '../../../utils/columnValueUtils';
 
 interface DescriptiveStatisticsProps {
   dataset: GameData;
@@ -43,10 +45,12 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
 
   const stats = useMemo(() => {
     if (!feature || !data.length) return {};
-    // Extract numeric values for the selected feature
-    const values: number[] = data
-      .map((d) => (d as Record<string, any>)[feature])
-      .filter((value) => typeof value === 'number' && !isNaN(value));
+    const columnType = dataset.columnTypes[feature];
+    const values = getNumericFeatureValues(
+      data as Array<Record<string, unknown>>,
+      feature,
+      columnType,
+    );
 
     // Calculate the mean, median, mode, range, variance, standard deviation, skewness, and kurtosis
     const count = data.length;
@@ -76,7 +80,7 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
       variance,
       standardDeviation,
     };
-  }, [feature, data]);
+  }, [feature, data, dataset.columnTypes]);
 
   // prevent invalid feature selection
   useEffect(() => {
@@ -88,29 +92,33 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
   const getFeatureOptions = () => {
     if (dataset.featureLevel === 'population') {
       return Object.fromEntries(
-        Object.keys(dataset.columnTypes).map((key) => [key, key]),
+        Object.entries(dataset.columnTypes)
+          .filter(([, type]) => type !== 'Timedelta' && type !== 'Datetime')
+          .map(([key]) => [key, key]),
       );
     }
 
-    return Object.fromEntries(
-      Object.entries(dataset.columnTypes)
-        .filter(([_, value]) => value === 'Numeric')
-        .map(([key]) => [key, key]),
-    );
+    return getFeatureOptionsForColumnTypes(dataset.columnTypes, [
+      'Numeric',
+      'Timedelta',
+    ]);
   };
 
   const formatMeasureDisplay = (
     measure: keyof typeof measures,
     value: unknown,
   ): string => {
+    const columnType = dataset.columnTypes[feature];
     if (
       (measure === 'range' || measure === 'quartiles') &&
       Array.isArray(value)
     ) {
-      return formatStatValues(value);
+      return value
+        .map((entry) => formatChartNumericValue(entry as number, columnType))
+        .join(' ~ ');
     }
     if (typeof value === 'number') {
-      return formatStatValue(value);
+      return formatChartNumericValue(value, columnType);
     }
     return value != null ? String(value) : '';
   };
@@ -136,11 +144,20 @@ const DescriptiveStatistics: React.FC<DescriptiveStatisticsProps> = ({
     }
 
     if (dataset.featureLevel === 'population' && data.length) {
+      const columnType = dataset.columnTypes[feature];
+      const displayValue = isNumericChartColumn(columnType)
+        ? formatChartNumericValue(
+            getNumericFeatureValues(
+              data as Array<Record<string, unknown>>,
+              feature,
+              columnType,
+            )[0],
+            columnType,
+          )
+        : (data[0] as Record<string, any>)[feature];
       return (
         <>
-          <span className="text-6xl font-bold">
-            {(data[0] as Record<string, any>)[feature]}
-          </span>
+          <span className="text-6xl font-bold">{displayValue}</span>
           <span className="text-lg">{feature}</span>
         </>
       );

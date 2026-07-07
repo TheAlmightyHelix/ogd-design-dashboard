@@ -11,6 +11,7 @@ import {
   isSupportedAiVizType,
   type NumericRange,
 } from './chartOptionSchemas';
+import { getNumericFeatureValue } from '../../utils/columnValueUtils';
 
 const MAX_CHARTS = 8;
 const MAX_COLS = 12;
@@ -65,10 +66,15 @@ function getNumericExtent(
   dataset: GameData,
   column: string,
 ): NumericRange | null {
+  const columnType = dataset.columnTypes[column];
   const values: number[] = [];
   for (const row of dataset.data) {
-    const v = Number((row as Record<string, unknown>)[column]);
-    if (!Number.isNaN(v)) values.push(v);
+    const value = getNumericFeatureValue(
+      row as Record<string, unknown>,
+      column,
+      columnType,
+    );
+    if (value != null && !Number.isNaN(value)) values.push(value);
   }
   if (values.length === 0) return null;
 
@@ -98,7 +104,7 @@ function pickVizTypeForColumn(
     if (supported.includes('bar')) return 'bar';
   }
 
-  if (columnType === 'Numeric') {
+  if (columnType === 'Timedelta' || columnType === 'Numeric') {
     const rt = (returnType ?? '').toLowerCase();
     if (rt.includes('distribution') || rt.includes('histogram')) {
       if (supported.includes('histogram')) return 'histogram';
@@ -107,6 +113,11 @@ function pickVizTypeForColumn(
     if (supported.includes('boxPlot')) return 'boxPlot';
     if (supported.includes('descriptiveStatistics'))
       return 'descriptiveStatistics';
+  }
+
+  if (columnType === 'Datetime') {
+    if (supported.includes('timeline')) return 'timeline';
+    return null;
   }
 
   if (supported.includes('descriptiveStatistics'))

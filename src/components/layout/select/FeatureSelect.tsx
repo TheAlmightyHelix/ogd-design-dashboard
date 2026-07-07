@@ -1,6 +1,11 @@
 import SearchableSelect from './SearchableSelect';
 import { useMemo, useState, useEffect } from 'react';
 import { trackEvent } from '../../../lib/analytics';
+import {
+  getBaseFeatureFromKey,
+  getIteratedFeatureMap,
+  isIteratedBaseFeature,
+} from '../../../utils/featureNameUtils';
 
 interface FeatureSelectProps {
   feature: string;
@@ -31,14 +36,20 @@ export default function FeatureSelect({
   const parsedFeatures: ParsedFeatures = useMemo(() => {
     const simpleFeatures: string[] = [];
     const iteratedFeatures: Record<string, string[]> = {};
+    const featureKeys = Object.keys(featureOptions);
+    const iteratedFeatureMap = getIteratedFeatureMap(featureKeys);
 
-    Object.keys(featureOptions).forEach((featureKey) => {
-      if (featureKey.includes('_')) {
-        const [iteration, baseFeature] = featureKey.split('_');
+    featureKeys.forEach((featureKey) => {
+      const baseFeature = getBaseFeatureFromKey(featureKey);
+
+      if (baseFeature && isIteratedBaseFeature(baseFeature, iteratedFeatureMap)) {
         if (!iteratedFeatures[baseFeature]) {
           iteratedFeatures[baseFeature] = [];
         }
-        iteratedFeatures[baseFeature].push(iteration);
+        const iteration = featureKey.slice(0, featureKey.indexOf('_'));
+        if (!iteratedFeatures[baseFeature].includes(iteration)) {
+          iteratedFeatures[baseFeature].push(iteration);
+        }
       } else {
         simpleFeatures.push(featureKey);
       }
@@ -52,8 +63,9 @@ export default function FeatureSelect({
 
   // Initialize state based on current feature
   useEffect(() => {
-    if (feature.includes('_')) {
-      const [iteration, baseFeature] = feature.split('_');
+    const baseFeature = getBaseFeatureFromKey(feature);
+    if (baseFeature && feature.includes('_')) {
+      const iteration = feature.slice(0, feature.indexOf('_'));
       setSelectedBaseFeature(baseFeature);
       setSelectedIteration(iteration);
     } else {
