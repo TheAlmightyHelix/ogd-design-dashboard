@@ -11,7 +11,9 @@ import {
   traceParseTSV,
 } from './tsvAdapterDebug';
 
-function getFeatureLevel(feature: string | undefined) {
+function getFeatureLevel(
+  feature: string | undefined,
+): GameData['featureLevel'] {
   if (!feature) {
     return 'unknown';
   }

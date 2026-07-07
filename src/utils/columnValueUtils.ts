@@ -18,14 +18,12 @@ export function formatChartNumericValue(
 
 export function createNumericAxisFormatter(
   columnType: ColumnType | undefined,
-): (value: number) => string {
-  if (columnType === 'Timedelta') {
-    return (value) => formatTimedeltaSeconds(value);
-  }
-  if (columnType === 'Datetime') {
-    return (value) => formatDatetime(new Date(value));
-  }
-  return (value) => formatStatValue(value);
+): (value: d3.NumberValue) => string {
+  return (value) => {
+    const numericValue =
+      typeof value === 'number' ? value : value.valueOf();
+    return formatChartNumericValue(numericValue, columnType);
+  };
 }
 
 export function isNumericChartColumn(

@@ -5,7 +5,6 @@ import {
   readTsvFileText,
   readTsvFileTextChunked,
   traceParseTSV,
-  validateTsvTextRead,
 } from './tsvAdapterDebug';
 
 /** Above this size, browsers often return empty text from File.text(). */
@@ -17,14 +16,14 @@ export const STREAM_PARSE_THRESHOLD_BYTES = 16 * 1024 * 1024;
 export function autoTypeRow(
   row: Record<string, unknown>,
 ): Record<string, unknown> {
-  const typed: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(row)) {
-    typed[key] =
-      typeof value === 'string' || value == null
-        ? d3.autoType(value as string)
-        : value;
-  }
-  return typed;
+  const typed = Object.fromEntries(
+    Object.entries(row).map(([key, value]) => [
+      key,
+      value == null ? '' : String(value),
+    ]),
+  ) as Record<string, string>;
+
+  return d3.autoType(typed);
 }
 
 function parseTsvText(text: string): d3.DSVParsedArray<object> {
